@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Annotation Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+    
+    <style>
+/* Global Styling */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #e0f7fa; /* Light cyan background for freshness */
+    color: #263238; /* Dark grey text for contrast */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#controls {
+    display: flex;
+    gap: 12px;
+    padding: 15px;
+    background: linear-gradient(135deg, #00bcd4, #009688); /* Teal gradient for the controls */
+    justify-content: center;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    border-radius: 12px;
+    z-index: 10;
+}
+
+#controls button,
+#controls input {
+    padding: 12px 20px;
+    border: none;
+    background-color: #ffffff;
+    color: #263238; /* Matching the text color */
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+#controls button:hover,
+#controls input:hover {
+    background-color: #00bcd4; /* Highlight on hover with teal */
+    color: white;
+}
+
+#controls button:active,
+#controls input:active {
+    transform: scale(0.98);
+    box-shadow: none;
+}
+
+#controls input[type="file"] {
+    background-color: #f1f1f1;
+    padding: 8px;
+}
+
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px #00bcd4; /* Focus effect with teal */
+}
+
+/* Page Navigation Buttons */
+button.prev-next {
+    background-color: #00796b; /* Deep teal for navigation */
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+}
+
+button.prev-next:hover {
+    background-color: #004d40; /* Darker teal on hover */
+}
+
+/* PDF Container Styling */
+#pdf-container {
+    position: relative;
+    display: inline-block;
+    background-color: #ffffff;
+    margin-top: 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+    border: 3px solid #00bcd4; /* Teal border for the PDF container */
+    padding: 12px;
+}
+
+/* PDF Canvas and Fabric Canvas Styling */
+#pdf-canvas,
+#fabric-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 8px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Page Number Display */
+#page-num,
+#page-count {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00796b; /* Teal page number color */
+}
+
+/* Annotation Types (highlight, text, shapes) */
+.fabric-rect {
+    border: 3px solid #ffeb3b; /* Bright yellow for highlight */
+    background-color: rgba(255, 235, 59, 0.4); /* Light yellow background */
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
+}
+
+.fabric-circle {
+    border: 3px solid #f44336; /* Red for circles */
+    background-color: rgba(244, 67, 54, 0.4); /* Light red background */
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
+}
+
+.fabric-line {
+    stroke: #4caf50; /* Green for lines */
+    stroke-width: 4;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
+}
+
+.fabric-textbox {
+    color: #1976d2; /* Blue text color */
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(25, 118, 210, 0.4);
+}
+
+/* Scroll Bar Styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4caf50; /* Green thumb */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #388e3c; /* Darker green on hover */
+}
+
+/* Styling for undo/redo buttons */
+.undo-redo-buttons {
+    background-color: #ff9800; /* Orange color */
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+}
+
+.undo-redo-buttons:hover {
+    background-color: #fb8c00;
+}
+
+.undo-redo-buttons:active {
+    transform: scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    #controls {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    #pdf-container {
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    canvas {
+        width: 100%;
+    }
+
+    button,
+    input {
+        font-size: 14px;
+        padding: 8px 14px;
+    }
+
+    .fabric-rect,
+    .fabric-circle,
+    .fabric-line,
+    .fabric-textbox {
+        font-size: 14px;
+    }
+
+    #pdf-container {
+        box-shadow: none;
+        border-radius: 0;
+    }
+}
+
+/* Final Touches */
+#pdf-container canvas {
+    transition: all 0.3s ease-in-out;
+}
+
+#pdf-container canvas:hover {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <input type="file" id="file-input" accept="application/pdf">
+        <button onclick="addHighlight()">Highlight</button>
+        <button onclick="addLine()">Line</button>
+        <button onclick="addCircle()">Circle</button>
+        <button onclick="addText()">Text</button>
+        <button onclick="undo()">Undo</button>
+        <button onclick="redo()">Redo</button>
+        <button onclick="save()">Save PDF</button>
+    </div>
+    <button onclick="prevPage()">Previous Page</button>
+<button onclick="nextPage()">Next Page</button>
+<span>Page: <span id="page-num">1</span> / <span id="page-count">0</span></span>
+
+    <div id="pdf-container">
+        <canvas id="pdf-canvas"></canvas>
+        <canvas id="fabric-canvas"></canvas>
+    </div>
+    
+    <div id="pdf-container">
+        <canvas id="pdf-canvas"></canvas>
+    </div>
+
+    <script>
+let pdfDoc = null;
+let pageNum = 1;
+const pdfCanvas = document.getElementById('pdf-canvas');
+const fabricCanvasElement = document.getElementById('fabric-canvas');
+const pdfContext = pdfCanvas.getContext('2d');
+const fabricCanvas = new fabric.Canvas(fabricCanvasElement, { selection: true });
+let redoStack = []; // Create a stack for redo
+// Store annotations by page number
+let annotationsByPage = {};  // Store annotations for each page
+
+
+
+
+document.getElementById('file-input').addEventListener('change', handleFile);
+
+function handleFile(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const pdfData = new Uint8Array(e.target.result);
+            pdfjsLib.getDocument({ data: pdfData }).promise.then(pdf => {
+                pdfDoc = pdf;
+                renderPage(pageNum);
+            });
+        };
+        reader.readAsArrayBuffer(file);
+    }
+}
+
+
+
+function renderPage(num) {
+    pdfDoc.getPage(num).then(page => {
+        const viewport = page.getViewport({ scale: 1.5 });
+        pdfCanvas.width = viewport.width;
+        pdfCanvas.height = viewport.height;
+        fabricCanvasElement.width = viewport.width;
+        fabricCanvasElement.height = viewport.height;
+
+        const renderContext = {
+            canvasContext: pdfContext,
+            viewport: viewport,
+        };
+
+        page.render(renderContext).promise.then(() => {
+            fabricCanvas.clear(); // Clear existing annotations for the new page
+            fabricCanvas.setWidth(viewport.width);
+            fabricCanvas.setHeight(viewport.height);
+
+            const scaleFactor = viewport.scale; // Current viewport scale
+
+            // Reapply annotations for the current page
+            if (annotationsByPage[num]) {
+                annotationsByPage[num].forEach(annotation => {
+                    let obj;
+                    if (annotation.type === 'highlight') {
+                        obj = new fabric.Rect({
+                            left: annotation.x1 * scaleFactor,
+                            top: annotation.y1 * scaleFactor,
+                            width: (annotation.x2 - annotation.x1) * scaleFactor,
+                            height: (annotation.y2 - annotation.y1) * scaleFactor,
+                            fill: annotation.fill || 'yellow',
+                            opacity: annotation.opacity || 0.5,
+                        });
+                    } else if (annotation.type === 'line') {
+                        obj = new fabric.Line(
+                            [
+                                annotation.x1 * scaleFactor,
+                                annotation.y1 * scaleFactor,
+                                annotation.x2 * scaleFactor,
+                                annotation.y2 * scaleFactor,
+                            ],
+                            {
+                                stroke: annotation.stroke || 'red',
+                                strokeWidth: annotation.strokeWidth * scaleFactor || 2,
+                            }
+                        );
+                    } else if (annotation.type === 'circle') {
+                        obj = new fabric.Circle({
+                            left: annotation.x1 * scaleFactor,
+                            top: annotation.y1 * scaleFactor,
+                            radius: annotation.radius * scaleFactor,
+                            fill: annotation.fill || 'rgba(0, 0, 255, 0.5)',
+                        });
+                    } else if (annotation.type === 'text') {
+                        obj = new fabric.Textbox(annotation.text, {
+                            left: annotation.x1 * scaleFactor,
+                            top: annotation.y1 * scaleFactor,
+                            fontSize: (annotation.fontSize || 20) * scaleFactor,
+                            fill: 'black',
+                        });
+                    }
+                    if (obj) {
+                        obj.id = annotation.id; // Reassign the id
+                        fabricCanvas.add(obj);
+                    }
+                });
+            }
+        });
+
+        document.getElementById('page-num').textContent = num;
+    });
+}
+
+
+
+
+
+// Function to get the scaling factor between the PDF page and canvas
+function getScaleFactor() {
+    return {
+        x: pdfCanvas.width / fabricCanvas.getWidth(),
+        y: pdfCanvas.height / fabricCanvas.getHeight(),
+    };
+}
+
+
+function prevPage() {
+    if (pageNum <= 1) return;
+    pageNum--;
+    renderPage(pageNum);
+}
+
+function nextPage() {
+    if (pageNum >= pdfDoc.numPages) return;
+    pageNum++;
+    renderPage(pageNum);
+}
+
+// Function to store annotations with scaling applied based on the current page's viewport
+function storeAnnotation(type, obj) {
+    const scaleFactor = getScaleFactor();
+
+    if (!annotationsByPage[pageNum]) {
+        annotationsByPage[pageNum] = [];
+    }
+
+    obj.id = obj.id || Date.now() + Math.random().toString(36).substr(2, 9);
+
+    const annotation = {
+        id: obj.id,
+        type: type,
+        x1: obj.left / scaleFactor.x,
+        y1: obj.top / scaleFactor.y,
+        x2: (obj.left + (obj.width || 0)) / scaleFactor.x,
+        y2: (obj.top + (obj.height || 0)) / scaleFactor.y,
+        page: pageNum,
+    };
+
+    if (type === "highlight") {
+        annotation.fill = obj.fill;
+        annotation.opacity = obj.opacity;
+    } else if (type === "circle") {
+        annotation.radius = obj.radius / scaleFactor.x;
+        annotation.fill = obj.fill;
+    } else if (type === "line") {
+        annotation.x2 = obj.x2 / scaleFactor.x;
+        annotation.y2 = obj.y2 / scaleFactor.y;
+        annotation.stroke = obj.stroke;
+        annotation.strokeWidth = obj.strokeWidth / scaleFactor.x;
+    } else if (type === "text") {
+        annotation.text = obj.text;
+        annotation.fontSize = obj.fontSize / scaleFactor.x;
+        annotation.fill = obj.fill;
+    }
+
+    annotationsByPage[pageNum].push(annotation);
+    console.log("Stored Annotation:", annotation);
+}
+
+
+function addHighlight() {
+    let rect = new fabric.Rect({
+        left: 50,
+        top: 50,
+        width: 100,
+        height: 30,
+        fill: 'yellow',
+        opacity: 0.5,
+    });
+    fabricCanvas.add(rect);
+    storeAnnotation('highlight', rect);
+}
+
+function addLine() {
+    let line = new fabric.Line([50, 50, 200, 200], {
+        stroke: 'red',
+        strokeWidth: 2,
+    });
+    fabricCanvas.add(line);
+    storeAnnotation('line', line);
+}
+
+function addCircle() {
+    let circle = new fabric.Circle({
+        left: 50,
+        top: 50,
+        radius: 30,
+        fill: 'rgba(0, 0, 255, 0.5)',
+    });
+    fabricCanvas.add(circle);
+    storeAnnotation('circle', circle);
+}
+
+function addText() {
+    let text = new fabric.Textbox('Text Here', {
+        left: 50,
+        top: 50,
+        fontSize: 20,
+        fill: 'black',
+    });
+    fabricCanvas.add(text);
+    storeAnnotation('text', text);
+}
+
+// Update and store annotations for all object types
+fabricCanvas.on('object:modified', function (e) {
+    const obj = e.target;
+    if (obj && annotationsByPage[pageNum]) {
+        const pageAnnotations = annotationsByPage[pageNum];
+        const annotationIndex = pageAnnotations.findIndex(ann => ann.id === obj.id);
+
+        if (annotationIndex !== -1) {
+            const annotation = pageAnnotations[annotationIndex];
+
+            // Update common properties
+            annotation.x1 = obj.left;
+            annotation.y1 = obj.top;
+
+            // Update specific properties based on the object type
+            if (obj.type === 'textbox') {
+                annotation.text = obj.text;
+                annotation.x2 = obj.left + obj.width;
+                annotation.y2 = obj.top + obj.height;
+            } else if (obj.type === 'rect') {
+                annotation.x2 = obj.left + obj.width;
+                annotation.y2 = obj.top + obj.height;
+            } else if (obj.type === 'circle') {
+                annotation.radius = obj.radius;
+            } else if (obj.type === 'line') {
+                annotation.x2 = obj.x2;
+                annotation.y2 = obj.y2;
+            }
+
+            // Save the updated annotation
+            annotationsByPage[pageNum][annotationIndex] = annotation;
+        }
+    }
+});
+
+
+
+
+function undo() {
+    const objects = fabricCanvas.getObjects();
+    if (objects.length > 0) {
+        const last = objects[objects.length - 1];
+        redoStack.push(last); // Push the removed object to the redo stack
+
+        // Remove the annotation from `annotationsByPage`
+        if (annotationsByPage[pageNum]) {
+            annotationsByPage[pageNum] = annotationsByPage[pageNum].filter(ann => ann.id !== last.id);
+        }
+
+        fabricCanvas.remove(last);
+    }
+}
+
+
+function redo() {
+    if (redoStack.length > 0) {
+        const lastRedo = redoStack.pop(); // Pop the last object from the redo stack
+        fabricCanvas.add(lastRedo); // Add the object back to the canvas
+
+        // Add the annotation back to `annotationsByPage`
+        if (annotationsByPage[pageNum]) {
+            const annotation = {
+                id: lastRedo.id,
+                type: lastRedo.type,
+                x1: lastRedo.left || 0,
+                y1: lastRedo.top || 0,
+                x2: lastRedo.left + (lastRedo.width || 0),
+                y2: lastRedo.top + (lastRedo.height || 0),
+                // Add other properties as necessary
+            };
+            annotationsByPage[pageNum].push(annotation);
+        }
+    }
+}
+
+
+// Assuming fabricCanvas and pageNum are defined in your application
+
+function save() {
+    const annotations = [];
+    
+    // Loop through each object on the canvas
+    fabricCanvas.getObjects().forEach(obj => {
+        // Process different object types and add them to annotations
+        if (obj.type === 'textbox') {
+            annotations.push({
+                type: 'text',
+                page: pageNum, // Add the current page number
+                x1: obj.left,
+                y1: obj.top,
+                x2: obj.left + obj.width,
+                y2: obj.top + obj.height,
+                text: obj.text,
+            });
+        } else if (obj.type === 'rect') {
+            annotations.push({
+                type: 'highlight',
+                page: pageNum, // Add the current page number
+                x1: obj.left,
+                y1: obj.top,
+                x2: obj.left + obj.width,
+                y2: obj.top + obj.height,
+                fill: obj.fill,
+                opacity: obj.opacity,
+            });
+        } else if (obj.type === 'circle') {
+            annotations.push({
+                type: 'circle',
+                page: pageNum, // Add the current page number
+                x1: obj.left,
+                y1: obj.top,
+                radius: obj.radius,
+                fill: obj.fill,
+            });
+        } else if (obj.type === 'line') {
+            annotations.push({
+                type: 'line',
+                page: pageNum, // Add the current page number
+                x1: obj.x1,
+                y1: obj.y1,
+                x2: obj.x2,
+                y2: obj.y2,
+                stroke: obj.stroke,
+                strokeWidth: obj.strokeWidth,
+            });
+        }
+    });
+
+    // Example logic to save or process annotations
+    console.log("Annotations Saved:", annotations);
+
+    // You can replace the above console log with code to save annotations to a database or server
+    // Example: send a POST request
+    const fileInput = document.getElementById('file-input');
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const pdfData = e.target.result.split(',')[1];
+        fetch('http://127.0.0.1:5000/save', {  // Changed URL to `/save`
+            method: 'POST',
+            body: JSON.stringify({ pdf: pdfData, annotations }),
+            headers: { 'Content-Type': 'application/json' },
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'annotated.pdf';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            console.error("Error saving PDF:", error);
+        });
+    };
+
+    if (fileInput.files.length > 0) {
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        alert("No file selected!");
+    }
+}
+    </script>
+</body>
+</html>
