@@ -390,20 +390,36 @@ function storeAnnotation(type, obj) {
         x2: (obj.left + (obj.width || 0)) / scaleFactor.x,
         y2: (obj.top + (obj.height || 0)) / scaleFactor.y,
         page: pageNum,
+        title: "", // Default title if not set
+        subject: "", // Default subject if not set
+        content: "", // Default content if not set
     };
 
+    // Add title, subject, and content for each annotation type
     if (type === "highlight") {
+        annotation.title = "Highlight Title";  // Custom title
+        annotation.subject = "Highlight Subject";  // Custom subject
+        annotation.content = "This is a highlight annotation.";  // Custom content
         annotation.fill = obj.fill;
         annotation.opacity = obj.opacity;
     } else if (type === "circle") {
+        annotation.title = "Circle Title";
+        annotation.subject = "Circle Subject";
+        annotation.content = "This is a circle annotation.";
         annotation.radius = obj.radius / scaleFactor.x;
         annotation.fill = obj.fill;
     } else if (type === "line") {
+        annotation.title = "Line Title";
+        annotation.subject = "Line Subject";
+        annotation.content = "This is a line annotation.";
         annotation.x2 = obj.x2 / scaleFactor.x;
         annotation.y2 = obj.y2 / scaleFactor.y;
         annotation.stroke = obj.stroke;
         annotation.strokeWidth = obj.strokeWidth / scaleFactor.x;
     } else if (type === "text") {
+        
+        annotation.subject = "Text Subject";
+        annotation.title = "Text";
         annotation.text = obj.text;
         annotation.fontSize = obj.fontSize / scaleFactor.x;
         annotation.fill = obj.fill;
@@ -412,6 +428,7 @@ function storeAnnotation(type, obj) {
     annotationsByPage[pageNum].push(annotation);
     console.log("Stored Annotation:", annotation);
 }
+
 
 
 function addHighlight() {
@@ -477,6 +494,7 @@ fabricCanvas.on('object:modified', function (e) {
                 annotation.text = obj.text;
                 annotation.x2 = obj.left + obj.width;
                 annotation.y2 = obj.top + obj.height;
+                
             } else if (obj.type === 'rect') {
                 annotation.x2 = obj.left + obj.width;
                 annotation.y2 = obj.top + obj.height;
@@ -551,6 +569,9 @@ function save() {
                 x2: obj.left + obj.width,
                 y2: obj.top + obj.height,
                 text: obj.text,
+                title: "Text ",  // Add title
+                subject: "Text Subject",  // Add subject
+
             });
         } else if (obj.type === 'rect') {
             annotations.push({
@@ -562,6 +583,9 @@ function save() {
                 y2: obj.top + obj.height,
                 fill: obj.fill,
                 opacity: obj.opacity,
+                title: "Highlight ",  // Add title
+                subject: "Highlight Subject",  // Add subject
+                content: "This is a highlight annotation."  // Add content
             });
         } else if (obj.type === 'circle') {
             annotations.push({
@@ -571,6 +595,9 @@ function save() {
                 y1: obj.top,
                 radius: obj.radius,
                 fill: obj.fill,
+                title: "Circle ",  // Add title
+                subject: "Circle Subject",  // Add subject
+                content: "This is a circle annotation."  // Add content
             });
         } else if (obj.type === 'line') {
             annotations.push({
@@ -582,6 +609,9 @@ function save() {
                 y2: obj.y2,
                 stroke: obj.stroke,
                 strokeWidth: obj.strokeWidth,
+                title: "Line ",  // Add title
+                subject: "Line Subject",  // Add subject
+                content: "This is a line annotation."  // Add content
             });
         }
     });
@@ -620,6 +650,8 @@ function save() {
         alert("No file selected!");
     }
 }
+console.log("Annotations to be sent:", annotations);
+
     </script>
 </body>
 </html>

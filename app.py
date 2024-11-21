@@ -16,6 +16,7 @@ def save_pdf():
 
     # Decode annotation data
     annotations = data.get('annotations', [])  # Expecting annotation details from frontend
+    # print("Annotations received:", annotations)
 
     # Open the original PDF using PyMuPDF
     doc = fitz.open(stream=pdf_data, filetype="pdf")
@@ -26,18 +27,19 @@ def save_pdf():
         page = doc.load_page(page_num)  # Access the correct page
 
         if annotation["type"] == "text":
-            # Add FreeText annotation
+            # Add FreeText annotation (Text comment)
             rect = fitz.Rect(annotation["x1"], annotation["y1"], annotation["x2"], annotation["y2"])
             text_annotation = page.add_freetext_annot(rect, annotation["text"])
-            
+            # Set metadata to make it show in the comment pane
+            text_annotation.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
             text_annotation.update()
 
         elif annotation["type"] == "highlight":
-            # Add highlight annotation
+            # Add highlight annotation (Text comment)
             rect = fitz.Rect(annotation["x1"], annotation["y1"], annotation["x2"], annotation["y2"])
             highlight_annot = page.add_highlight_annot(rect)
-            highlight_annot.set_info(info={"content": "This is a Highlight annotation."})
-
+            # Set metadata to make it show in the comment pane
+            highlight_annot.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
             highlight_annot.update()
 
         elif annotation["type"] == "circle":
@@ -45,17 +47,17 @@ def save_pdf():
             rect = fitz.Rect(annotation["x1"], annotation["y1"], annotation["x1"] + annotation["radius"] * 2,
                              annotation["y1"] + annotation["radius"] * 2)
             circle_annot = page.add_circle_annot(rect)
-            circle_annot.set_info(info={"content": "This is a circle annotation."})
-            circle_annot.set_info(info={"title": "Shreyash"})
-            circle_annot.set_info(info={"subject": "subject test"})
+            # Set metadata to make it show in the comment pane
+            circle_annot.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
             circle_annot.update()
 
         elif annotation["type"] == "line":
-            # Add line annotation
+            # Add line annotation (Text comment)
             line_start = fitz.Point(annotation["x1"], annotation["y1"])
             line_end = fitz.Point(annotation["x2"], annotation["y2"])
             line_annot = page.add_line_annot(line_start, line_end)
-            line_annot.set_info(info={"content": "This is a circle annotation."})
+            # Set metadata to make it show in the comment pane
+            line_annot.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
             line_annot.update()
 
     # Save the annotated PDF to a byte array
