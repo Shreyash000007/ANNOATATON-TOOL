@@ -251,6 +251,72 @@ const fabricCanvas = new fabric.Canvas(fabricCanvasElement, { selection: true })
 let redoStack = []; // Create a stack for redo
 // Store annotations by page number
 let annotationsByPage = {};  // Store annotations for each page
+let isDrawing = false; // To track if user is drawing
+let startX, startY; // Start coordinates for drawing
+let currentAnnotation = null;
+
+
+function redrawAnnotations() {
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Loop through all saved annotations and redraw them
+    annotations.forEach((annotation) => {
+        if (annotation.type === 'highlight') {
+            // Logic for highlight annotation
+            ctx.beginPath();
+            ctx.strokeStyle = annotation.color || 'yellow';
+            ctx.lineWidth = annotation.lineWidth || 2;
+            annotation.points.forEach((point, index) => {
+                if (index === 0) {
+                    ctx.moveTo(point.x, point.y);
+                } else {
+                    ctx.lineTo(point.x, point.y);
+                }
+            });
+            ctx.stroke();
+            ctx.closePath();
+        } else if (annotation.type === 'line') {
+            // Logic for line annotation
+            ctx.beginPath();
+            ctx.strokeStyle = annotation.color || 'black';
+            ctx.lineWidth = annotation.lineWidth || 2;
+            ctx.moveTo(annotation.start.x, annotation.start.y);
+            ctx.lineTo(annotation.end.x, annotation.end.y);
+            ctx.stroke();
+            ctx.closePath();
+        } else if (annotation.type === 'text') {
+            // Logic for text annotation
+            ctx.font = `${annotation.fontSize || 16}px ${annotation.font || 'Arial'}`;
+            ctx.fillStyle = annotation.color || 'black';
+            ctx.fillText(annotation.text, annotation.position.x, annotation.position.y);
+        } else if (annotation.type === 'circle') {
+            // Logic for circle annotation
+            ctx.beginPath();
+            ctx.strokeStyle = annotation.color || 'red';
+            ctx.lineWidth = annotation.lineWidth || 2;
+            ctx.arc(
+                annotation.center.x,
+                annotation.center.y,
+                annotation.radius,
+                0,
+                2 * Math.PI
+            );
+            ctx.stroke();
+            ctx.closePath();
+        }
+        // Additional annotation types can be added here as needed
+    });
+}
+function resetDrawingState() {
+    isDrawing = false;
+    fabricCanvas.isDrawingMode = false; // Disable free drawing mode
+    fabricCanvas.selection = true;     // Enable object selection
+    fabricCanvas.off('mouse:down');
+    fabricCanvas.off('mouse:move');
+    fabricCanvas.off('mouse:up');
+}
+
 
 
 
@@ -286,6 +352,8 @@ function renderPage(num) {
             canvasContext: pdfContext,
             viewport: viewport,
         };
+// Clear any existing content on the canvas before rendering new page
+pdfContext.clearRect(0, 0, pdfCanvas.width, pdfCanvas.height);
 
         page.render(renderContext).promise.then(() => {
             fabricCanvas.clear(); // Clear existing annotations for the new page
@@ -379,7 +447,11 @@ function storeAnnotation(type, obj) {
     if (!annotationsByPage[pageNum]) {
         annotationsByPage[pageNum] = [];
     }
-
+    const annotationExists = annotationsByPage[pageNum].find((ann) => ann.id === obj.id);
+    if (annotationExists) {
+        console.warn("Annotation already exists:", obj.id);
+        return; // Avoid duplicate storage
+    }
     obj.id = obj.id || Date.now() + Math.random().toString(36).substr(2, 9);
 
     const annotation = {
@@ -432,46 +504,165 @@ function storeAnnotation(type, obj) {
 
 
 function addHighlight() {
-    let rect = new fabric.Rect({
-        left: 50,
-        top: 50,
-        width: 100,
-        height: 30,
-        fill: 'yellow',
-        opacity: 0.5,
+    resetDrawingState();
+    isDrawing = true;
+    fabricCanvas.isDrawingMode = false;  // Disable free drawing mode
+    fabricCanvas.selection = false;      // Disable object selection
+
+    let rect; // Declare the rectangle outside of the event handlers
+
+    fabricCanvas.on('mouse:down', function (e) {
+        const pointer = fabricCanvas.getPointer(e.e);
+        startX = pointer.x;
+        startY = pointer.y;
+
+        // Create the rectangle (highlight) at mouse down
+        rect = new fabric.Rect({
+            left: startX,
+            top: startY,
+            width: 0,
+            height: 0,
+            fill: 'yellow',
+            opacity: 0.5,
+        });
+
+        fabricCanvas.add(rect);
     });
-    fabricCanvas.add(rect);
-    storeAnnotation('highlight', rect);
+
+    fabricCanvas.on('mouse:move', function (e) {
+        if (!rect) return; // If the rectangle isn't created, return
+        const pointer = fabricCanvas.getPointer(e.e);
+        const width = pointer.x - startX;
+        const height = pointer.y - startY;
+
+        // Update the width and height of the rectangle while the mouse is moving
+        rect.set({ width: width, height: height });
+        fabricCanvas.renderAll(); // Re-render the canvas to reflect changes
+    });
+
+    fabricCanvas.on('mouse:up', function () {
+        if (!rect) return; // If the rectangle isn't created, return
+        storeAnnotation('highlight', rect); // Store the annotation once drawing is finished
+        isDrawing = false;
+
+        // Remove event listeners to stop drawing after mouse up
+        fabricCanvas.off('mouse:down');
+        fabricCanvas.off('mouse:move');
+        fabricCanvas.off('mouse:up');
+    });
 }
+
 
 function addLine() {
-    let line = new fabric.Line([50, 50, 200, 200], {
-        stroke: 'red',
-        strokeWidth: 2,
-    });
-    fabricCanvas.add(line);
-    storeAnnotation('line', line);
+    resetDrawingState(); // Reset any active drawing state
+    isDrawing = true;
+    fabricCanvas.isDrawingMode = false;
+    fabricCanvas.selection = false;
+
+    let line;
+
+    // Start drawing
+    const mouseDownHandler = function (e) {
+        const pointer = fabricCanvas.getPointer(e.e);
+        startX = pointer.x;
+        startY = pointer.y;
+        line = new fabric.Line([startX, startY, startX, startY], {
+            stroke: 'red',
+            strokeWidth: 2,
+        });
+        fabricCanvas.add(line);
+    };
+
+    // Update line as the mouse moves
+    const mouseMoveHandler = function (e) {
+        if (!line) return;
+        const pointer = fabricCanvas.getPointer(e.e);
+        line.set({ x2: pointer.x, y2: pointer.y });
+        fabricCanvas.renderAll();
+    };
+
+    // End drawing
+    const mouseUpHandler = function () {
+        if (!line) return;
+        storeAnnotation('line', line);
+        isDrawing = false;
+
+        // Remove event listeners
+        fabricCanvas.off('mouse:down', mouseDownHandler);
+        fabricCanvas.off('mouse:move', mouseMoveHandler);
+        fabricCanvas.off('mouse:up', mouseUpHandler);
+    };
+
+    // Attach event listeners
+    fabricCanvas.on('mouse:down', mouseDownHandler);
+    fabricCanvas.on('mouse:move', mouseMoveHandler);
+    fabricCanvas.on('mouse:up', mouseUpHandler);
 }
+
 
 function addCircle() {
-    let circle = new fabric.Circle({
-        left: 50,
-        top: 50,
-        radius: 30,
-        fill: 'rgba(0, 0, 255, 0.5)',
-    });
-    fabricCanvas.add(circle);
-    storeAnnotation('circle', circle);
+    resetDrawingState(); // Reset any active drawing state
+    isDrawing = true;
+    fabricCanvas.isDrawingMode = false;
+    fabricCanvas.selection = false;
+
+    let circle;
+
+    // Start drawing
+    const mouseDownHandler = function (e) {
+        const pointer = fabricCanvas.getPointer(e.e);
+        startX = pointer.x;
+        startY = pointer.y;
+        circle = new fabric.Circle({
+            left: startX,
+            top: startY,
+            radius: 0,
+            fill: 'rgba(0, 0, 255, 0.5)',
+        });
+        fabricCanvas.add(circle);
+    };
+
+    // Update circle as the mouse moves
+    const mouseMoveHandler = function (e) {
+        if (!circle) return;
+        const pointer = fabricCanvas.getPointer(e.e);
+        const radius = Math.sqrt(
+            Math.pow(pointer.x - startX, 2) + Math.pow(pointer.y - startY, 2)
+        );
+        circle.set({ radius: radius });
+        fabricCanvas.renderAll();
+    };
+
+    // End drawing
+    const mouseUpHandler = function () {
+        if (!circle) return;
+        storeAnnotation('circle', circle);
+        isDrawing = false;
+
+        // Remove event listeners
+        fabricCanvas.off('mouse:down', mouseDownHandler);
+        fabricCanvas.off('mouse:move', mouseMoveHandler);
+        fabricCanvas.off('mouse:up', mouseUpHandler);
+    };
+
+    // Attach event listeners
+    fabricCanvas.on('mouse:down', mouseDownHandler);
+    fabricCanvas.on('mouse:move', mouseMoveHandler);
+    fabricCanvas.on('mouse:up', mouseUpHandler);
 }
 
+
 function addText() {
-    let text = new fabric.Textbox('Text Here', {
+    resetDrawingState();
+    const text = new fabric.Textbox('Enter Text', {
         left: 50,
         top: 50,
         fontSize: 20,
         fill: 'black',
     });
+
     fabricCanvas.add(text);
+    text.set({ editable: true });
     storeAnnotation('text', text);
 }
 
@@ -530,23 +721,16 @@ function undo() {
 }
 
 
+
 function redo() {
     if (redoStack.length > 0) {
-        const lastRedo = redoStack.pop(); // Pop the last object from the redo stack
-        fabricCanvas.add(lastRedo); // Add the object back to the canvas
-
-        // Add the annotation back to `annotationsByPage`
+        const lastRedo = redoStack.pop();
+        fabricCanvas.add(lastRedo);
         if (annotationsByPage[pageNum]) {
-            const annotation = {
-                id: lastRedo.id,
-                type: lastRedo.type,
-                x1: lastRedo.left || 0,
-                y1: lastRedo.top || 0,
-                x2: lastRedo.left + (lastRedo.width || 0),
-                y2: lastRedo.top + (lastRedo.height || 0),
-                // Add other properties as necessary
-            };
-            annotationsByPage[pageNum].push(annotation);
+            const annotation = annotationsByPage[pageNum].find(ann => ann.id === lastRedo.id);
+            if (annotation) {
+                annotationsByPage[pageNum].push(annotation);
+            }
         }
     }
 }
@@ -650,8 +834,25 @@ function save() {
         alert("No file selected!");
     }
 }
+fabricCanvasElement.addEventListener('mousedown', (e) => {
+    isDrawing = true;
+    pdfContext.beginPath();
+    pdfContext.moveTo(e.offsetX, e.offsetY);
+});
+fabricCanvasElement.addEventListener('mousemove', (e) => {
+    if (isDrawing) {
+        pdfContext.lineTo(e.offsetX, e.offsetY);
+        pdfContext.stroke();
+    }
+});
+fabricCanvasElement.addEventListener('mouseup', () => {
+    isDrawing = false;
+    pdfContext.closePath();
+});
+
 console.log("Annotations to be sent:", annotations);
 
     </script>
 </body>
 </html>
+
