@@ -16,7 +16,7 @@ def save_pdf():
 
     # Decode annotation data
     annotations = data.get('annotations', [])  # Expecting annotation details from frontend
-    print("Annotations => ", annotations)
+    # print("Annotations => ", annotations)
 
     # Open the original PDF using PyMuPDF
     doc = fitz.open(stream=pdf_data, filetype="pdf")
@@ -78,10 +78,13 @@ def save_pdf():
                         fitz_path.append(fitz.Point(command[1], command[2]))
                     elif command[0] == 'Q':  # Quadratic curve
                         fitz_path.append(fitz.Point(command[1], command[2]))
-                        fitz_path.append(fitz.Point(command[3], command[4]))
+                        fitz_path.append(fitz.Point(command[3], command[4]))  # Curve control points
 
-                page.draw_polyline(fitz_path, color=(0, 0, 0), width=2)
-                rect = fitz.Rect(annotation.get("x1", 0), annotation.get("y1", 0), annotation.get("x1", 0) + 1, annotation.get("y1", 0) + 1)
+                page.draw_polyline(fitz_path, color=(0, 0, 0), width=2)  # Default color and width for free draw
+                
+                # Ensure valid rectangle for free text annotation
+                x1, y1 = annotation.get("x1", 0), annotation.get("y1", 0)
+                rect = fitz.Rect(x1, y1, x1 + 1, y1 + 1)  # Create a non-zero rect
                 freeDraw_annot = page.add_freetext_annot(rect, "")
                 freeDraw_annot.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
                 freeDraw_annot.update()
@@ -90,23 +93,22 @@ def save_pdf():
 
         elif annotation["type"] == "cloud":
             if "path" in annotation:
-                # Cloud annotation - Ensure 'path' is a series of move (M) and curve (C) commands
-                path = annotation["path"]
+                # Add cloud annotation (path)
+                path = annotation['path']
                 fitz_path = []
                 for command in path:
                     if command[0] == 'M':  # Move to
                         fitz_path.append(fitz.Point(command[1], command[2]))
-                    elif command[0] == 'C':  # Cubic Bezier curve
+                    elif command[0] == 'A':  # Arc
                         fitz_path.append(fitz.Point(command[1], command[2]))
-                        fitz_path.append(fitz.Point(command[3], command[4]))
-                        fitz_path.append(fitz.Point(command[5], command[6]))
 
-                # Draw the cloud-shaped path using draw_polygon (for closed shapes)
-                page.draw_polygon(fitz_path, color=(0, 0, 0), width=2, fill=(0.9, 0.9, 0.9))  # Adjust color and width as needed
-
-                # Optionally, you can add a text annotation inside the cloud shape
-                rect = fitz.Rect(annotation.get("x1", 0), annotation.get("y1", 0), annotation.get("x2", 0), annotation.get("y2", 0))
-                cloud_annot = page.add_freetext_annot(rect, annotation.get("text", ""))
+                page.draw_polyline(fitz_path, color=(1.0, 0.0, 0.0), width=2)  # Red color (scaled to 1.0)
+                
+                # Ensure valid rectangle for free text annotation
+                x1, y1 = annotation.get("x1", 0), annotation.get("y1", 0)
+                x2, y2 = annotation.get("x2", x1 + 1), annotation.get("y2", y1 + 1)  # Ensure non-zero size
+                rect = fitz.Rect(x1, y1, x2, y2)  # Create a non-zero rect
+                cloud_annot = page.add_freetext_annot(rect, "")
                 cloud_annot.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
                 cloud_annot.update()
             else:
@@ -117,7 +119,7 @@ def save_pdf():
     doc.save(output_stream)  # Save the full document with annotations
     output_stream.seek(0)
     doc.close()
-
+   
     # Send the annotated PDF back to the client as a downloadable file
     return send_file(output_stream, as_attachment=True, download_name="annotated.pdf", mimetype="application/pdf")
 
