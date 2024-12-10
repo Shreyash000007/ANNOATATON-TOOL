@@ -9,6 +9,25 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
+def validate_and_normalize_color(color):
+    """
+    Validates and normalizes a given color to ensure it's within the expected range 0-1 for PyMuPDF.
+    Args:
+        color (list or tuple): Expected RGB color in either [0-255] or already normalized range [0-1].
+    Returns:
+        tuple: Normalized and clamped RGB values in the range [0, 1].
+    """
+    try:
+        if isinstance(color, (list, tuple)) and len(color) == 3:
+            # Normalize the color values if they are > 1.0
+            normalized_color = tuple(float(c) / 255.0 if c > 1 else float(c) for c in color)
+            # Clamp values to ensure they're strictly between 0.0 and 1.0
+            return tuple(min(1.0, max(0.0, c)) for c in normalized_color)
+    except:
+        pass
+    # Fallback to default black
+    return (0.0, 0.0, 0.0)
+
 @app.route('/save', methods=['POST'])
 def save_pdf():
     data = request.get_json()
@@ -37,15 +56,80 @@ def save_pdf():
             else:
                 print(f"Missing coordinates for text annotation: {annotation}")
 
+        if annotation["type"] == "line":
+            if all(key in annotation for key in ["x1", "y1", "x2", "y2"]):
+                start = fitz.Point(annotation["x1"], annotation["y1"])
+                end = fitz.Point(annotation["x2"], annotation["y2"])
+                page.draw_line(start, end, color=(1, 0, 0), width=annotation.get("strokeWidth", 1))
+            else:
+                print(f"Missing coordinates for line annotation: {annotation}")
+
+
         elif annotation["type"] == "highlight":
             if all(key in annotation for key in ["x1", "y1", "x2", "y2"]):
-                # Add highlight annotation
                 rect = fitz.Rect(annotation["x1"], annotation["y1"], annotation["x2"], annotation["y2"])
-                highlight_annot = page.add_highlight_annot(rect)
-                highlight_annot.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
+                highlight_annot = page.add_highlight_annot(rect)  # Correct method for highlight
+                highlight_annot.set_opacity(0.5)  # Adjust transparency
+                highlight_annot.set_info(
+                    title=annotation.get("title", ""),
+                    subject=annotation.get("subject", "Highlight"),
+                    content=annotation.get("content", "This text is highlighted.")
+                )
                 highlight_annot.update()
             else:
                 print(f"Missing coordinates for highlight annotation: {annotation}")
+
+        elif annotation["type"] == "underline":
+            if all(key in annotation for key in ["x1", "y1", "x2", "y2"]):
+                rect = fitz.Rect(annotation["x1"], annotation["y1"], annotation["x2"], annotation["y2"])
+                underline_annot = page.add_underline_annot(rect)  # Correct method for underline
+                underline_annot.set_colors(stroke=(1, 0, 0))  # Red underline
+                underline_annot.set_info(
+                    title=annotation.get("title", ""),
+                    subject=annotation.get("subject", "Underline"),
+                    content=annotation.get("content", "This text is underlined.")
+                )
+                underline_annot.update()
+            else:
+                print(f"Missing coordinates for underline annotation: {annotation}")
+
+        elif annotation["type"] == "strikeout":
+            if all(key in annotation for key in ["x1", "y1", "x2", "y2"]):
+                # Add strike-out annotation
+                rect = fitz.Rect(annotation["x1"], annotation["y1"], annotation["x2"], annotation["y2"])
+                strikeout_annot = page.add_strikeout_annot(rect)  # Correct method for strike-out
+        
+                # Adjust to visually represent strike-out
+                strikeout_annot.set_colors(stroke=(0, 0, 0))  # Set black color for line
+                strikeout_annot.set_border(width=annotation.get("strokeWidth", 1))
+                strikeout_annot.set_info(
+                    title=annotation.get("title", "Strike-out"),
+                    subject=annotation.get("subject", "Strike-out Annotation"),
+                    content=annotation.get("content", "This text has been struck out.")
+                )
+                strikeout_annot.update()
+            else:
+                print(f"Missing coordinates for strike-out annotation: {annotation}")
+
+
+        elif annotation["type"] == "square":
+            if all(key in annotation for key in ["x1", "y1", "x2", "y2"]):
+                # Add square annotation
+                rect = fitz.Rect(annotation["x1"], annotation["y1"], annotation["x2"], annotation["y2"])
+                square_annot = page.add_rect_annot(rect)
+                square_annot.set_info(
+                    title=annotation.get("title", ""),
+                    subject=annotation.get("subject", ""),
+                    content=annotation.get("content", "")
+                )
+                
+                # Validate and normalize stroke color
+                default_stroke = validate_and_normalize_color(annotation.get("stroke", [0, 0, 0]))  # Normalize color
+                square_annot.set_colors(stroke=default_stroke)
+                square_annot.set_border(width=annotation.get("strokeWidth", 1))  # Default stroke width
+                square_annot.update()
+            else:
+                print(f"Missing coordinates for square annotation: {annotation}")
 
         elif annotation["type"] == "circle":
             if all(key in annotation for key in ["x1", "y1", "radius"]):
@@ -57,16 +141,36 @@ def save_pdf():
             else:
                 print(f"Missing coordinates or radius for circle annotation: {annotation}")
 
-        elif annotation["type"] == "line":
-            if all(key in annotation for key in ["x1", "y1", "x2", "y2"]):
-                # Add line annotation
-                line_start = fitz.Point(annotation["x1"], annotation["y1"])
-                line_end = fitz.Point(annotation["x2"], annotation["y2"])
-                line_annot = page.add_line_annot(line_start, line_end)
-                line_annot.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
-                line_annot.update()
+        elif annotation["type"] == "cloud":
+            if "path" in annotation:
+                # Parse the path data for the cloud
+                cloud_path = annotation['path']
+                points = []
+
+                # Convert the path commands to points
+                for command in cloud_path:
+                    if command[0] == 'M':  # Move to
+                        points.append(fitz.Point(command[1], command[2]))
+                    elif command[0] == 'L':  # Line to
+                        points.append(fitz.Point(command[1], command[2]))
+                    elif command[0] == 'C':  # Curve to (Bézier)
+                        # A cubic bezier has 3 points: current point + 2 control points
+                        points.append(fitz.Point(command[1], command[2]))
+                        points.append(fitz.Point(command[3], command[4]))
+                        points.append(fitz.Point(command[5], command[6]))
+
+                # Draw the polyline for the cloud
+                try:
+                    page.draw_polyline(
+                        points,
+                        color=(1, 0, 0),
+                        width=annotation.get("strokeWidth", 2),
+                        closePath=True  # Ensure the path is closed
+                    )
+                except Exception as e:
+                    print(f"Error drawing cloud annotation: {e}")
             else:
-                print(f"Missing coordinates for line annotation: {annotation}")
+                print(f"Missing path data for cloud annotation: {annotation}")
 
         elif annotation["type"] == "freeDraw":
             if "path" in annotation:
@@ -91,28 +195,7 @@ def save_pdf():
             else:
                 print(f"Missing path data for freeDraw annotation: {annotation}")
 
-        elif annotation["type"] == "cloud":
-            if "path" in annotation:
-                # Add cloud annotation (path)
-                path = annotation['path']
-                fitz_path = []
-                for command in path:
-                    if command[0] == 'M':  # Move to
-                        fitz_path.append(fitz.Point(command[1], command[2]))
-                    elif command[0] == 'A':  # Arc
-                        fitz_path.append(fitz.Point(command[1], command[2]))
-
-                page.draw_polyline(fitz_path, color=(1.0, 0.0, 0.0), width=2)  # Red color (scaled to 1.0)
-                
-                # Ensure valid rectangle for free text annotation
-                x1, y1 = annotation.get("x1", 0), annotation.get("y1", 0)
-                x2, y2 = annotation.get("x2", x1 + 1), annotation.get("y2", y1 + 1)  # Ensure non-zero size
-                rect = fitz.Rect(x1, y1, x2, y2)  # Create a non-zero rect
-                cloud_annot = page.add_freetext_annot(rect, "")
-                cloud_annot.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
-                cloud_annot.update()
-            else:
-                print(f"Missing path data for cloud annotation: {annotation}")
+    
 
     # Save the annotated PDF to a byte array
     output_stream = io.BytesIO()

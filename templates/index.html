@@ -6,7 +6,6 @@
     <title>PDF Annotation Tool</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
-    
     <style>
 /* Global Styling */
 body {
@@ -19,7 +18,6 @@ body {
     flex-direction: column;
     align-items: center;
 }
-
 #controls {
     display: flex;
     gap: 12px;
@@ -32,7 +30,6 @@ body {
     border-radius: 12px;
     z-index: 10;
 }
-
 #controls button,
 #controls input {
     padding: 12px 20px;
@@ -45,29 +42,24 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
-
 #controls button:hover,
 #controls input:hover {
     background-color: #00bcd4; /* Highlight on hover with teal */
     color: white;
 }
-
 #controls button:active,
 #controls input:active {
     transform: scale(0.98);
     box-shadow: none;
 }
-
 #controls input[type="file"] {
     background-color: #f1f1f1;
     padding: 8px;
 }
-
 button:focus {
     outline: none;
     box-shadow: 0 0 0 3px #00bcd4; /* Focus effect with teal */
 }
-
 /* Page Navigation Buttons */
 button.prev-next {
     background-color: #00796b; /* Deep teal for navigation */
@@ -75,11 +67,9 @@ button.prev-next {
     font-weight: bold;
     border-radius: 8px;
 }
-
 button.prev-next:hover {
     background-color: #004d40; /* Darker teal on hover */
 }
-
 /* PDF Container Styling */
 #pdf-container {
     position: relative;
@@ -92,7 +82,6 @@ button.prev-next:hover {
     border: 3px solid #00bcd4; /* Teal border for the PDF container */
     padding: 12px;
 }
-
 /* PDF Canvas and Fabric Canvas Styling */
 #pdf-canvas,
 #fabric-canvas {
@@ -102,7 +91,6 @@ button.prev-next:hover {
     border-radius: 8px;
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
 }
-
 /* Page Number Display */
 #page-num,
 #page-count {
@@ -110,47 +98,40 @@ button.prev-next:hover {
     font-weight: bold;
     color: #00796b; /* Teal page number color */
 }
-
 /* Annotation Types (highlight, text, shapes) */
 .fabric-rect {
     border: 3px solid #ffeb3b; /* Bright yellow for highlight */
     background-color: rgba(255, 235, 59, 0.4); /* Light yellow background */
     box-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
+    
 }
-
 .fabric-circle {
     border: 3px solid #f44336; /* Red for circles */
     background-color: rgba(244, 67, 54, 0.4); /* Light red background */
     box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
 }
-
 .fabric-line {
     stroke: #4caf50; /* Green for lines */
     stroke-width: 4;
     box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
 }
-
 .fabric-textbox {
     color: #1976d2; /* Blue text color */
     font-size: 18px;
     font-weight: bold;
     box-shadow: 0 0 5px rgba(25, 118, 210, 0.4);
 }
-
 /* Scroll Bar Styling */
 ::-webkit-scrollbar {
     width: 10px;
 }
-
 ::-webkit-scrollbar-thumb {
     background: #4caf50; /* Green thumb */
     border-radius: 10px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
     background: #388e3c; /* Darker green on hover */
 }
-
 /* Styling for undo/redo buttons */
 .undo-redo-buttons {
     background-color: #ff9800; /* Orange color */
@@ -158,97 +139,113 @@ button.prev-next:hover {
     padding: 8px 16px;
     border-radius: 8px;
 }
-
 .undo-redo-buttons:hover {
     background-color: #fb8c00;
 }
-
 .undo-redo-buttons:active {
     transform: scale(0.98);
 }
-
 /* Responsive Design */
 @media (max-width: 768px) {
     body {
         padding: 10px;
     }
-
     #controls {
         flex-direction: column;
         gap: 15px;
     }
-
     #pdf-container {
         width: 100%;
         margin-top: 20px;
     }
-
     canvas {
         width: 100%;
     }
-
     button,
     input {
         font-size: 14px;
         padding: 8px 14px;
     }
-
     .fabric-rect,
     .fabric-circle,
     .fabric-line,
     .fabric-textbox {
         font-size: 14px;
     }
-
     #pdf-container {
         box-shadow: none;
         border-radius: 0;
     }
 }
-
 /* Final Touches */
 #pdf-container canvas {
     transition: all 0.3s ease-in-out;
 }
-
 #pdf-container canvas:hover {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
+/* Text Layer Styling */
+#text-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden; /* Prevent content overflow */
+  pointer-events: auto; /* Allow interactions with annotations if needed */
+  transform-origin: 0 0;
+  background: rgba(255, 255, 255, 0.01); /* Slightly visible or transparent background to ensure it's a layer */
+}
+#text-layer span {
+  pointer-events: all; /* Allow text selection if needed */
+  position: absolute;
+  white-space: pre;
+  color: transparent; /* Completely hide the text visually */
+  background: transparent; /* Ensure no additional rendering issues */
+  transform-origin: 0 0;
+}
+.text-annotation {
+    pointer-events: none; /* Prevent interference with text selection */
+    z-index: 1000; /* Ensure annotations are above the text layer */
+}
 
-    </style>
+
+   </style>
 </head>
 <body>
     <div id="controls">
         <input type="file" id="file-input" accept="application/pdf">
-        <button onclick="addHighlight()">Highlight</button>
+        <button onclick="addSquare()">Square</button>
         <button onclick="addLine()">Line</button>
         <button onclick="addCircle()">Circle</button>
         <button onclick="addFreeDraw()">Free Draw</button>
+        <button id="highlight">Highlight</button>
+        <button id="underline">Underline</button>
+        <button id="strikeout">Strike-out</button>
         <button onclick="addCloudAnnotation()">Cloud Annotation</button>
         <button onclick="addText()">Text</button>
         <button onclick="undo()">Undo</button>
         <button onclick="redo()">Redo</button>
         <button onclick="save()">Save PDF</button>
     </div>
+    <label>
+        <input type="checkbox" id="toggle-selection"> Enable Annotation Selection
+    </label>
     <button onclick="prevPage()">Previous Page</button>
 <button onclick="nextPage()">Next Page</button>
 <span>Page: <span id="page-num">1</span> / <span id="page-count">0</span></span>
-
     <div id="pdf-container">
         <canvas id="pdf-canvas"></canvas>
         <canvas id="fabric-canvas"></canvas>
+        <div id="text-layer" style="position: absolute; top: 0; left: 0;"></div>
     </div>
-    
     <div id="pdf-container">
         <canvas id="pdf-canvas"></canvas>
     </div>
-    
-
     <script>
 let pdfDoc = null;
 let pageNum = 1;
 const pdfCanvas = document.getElementById('pdf-canvas');
 const fabricCanvasElement = document.getElementById('fabric-canvas');
+const textLayer = document.getElementById('text-layer');
 const pdfContext = pdfCanvas.getContext('2d');
 const fabricCanvas = new fabric.Canvas(fabricCanvasElement, { selection: true });
 let redoStack = []; // Create a stack for redo
@@ -259,15 +256,7 @@ let startX, startY; // Start coordinates for drawing
 let currentAnnotation = null;
 // Enable free draw mode
 let isFreeDrawEnabled = false;
-
-
-
-
-
-
-
-
-
+const textLayerAdjustments = {}; // Store adjustments for each page { pageNum: { x: 0, y: 0 } }
 
 function enableFreeDraw() {
     isFreeDrawEnabled = !isFreeDrawEnabled;
@@ -275,29 +264,22 @@ function enableFreeDraw() {
     fabricCanvas.freeDrawingBrush.width = 2;
     fabricCanvas.freeDrawingBrush.color = 'black';
 }
-
-
 function redrawAnnotations() {
     // Clear the canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Loop through all saved annotations and redraw them
     annotations.forEach((annotation) => {
-        if (annotation.type === 'highlight') {
-            // Logic for highlight annotation
-            ctx.beginPath();
-            ctx.strokeStyle = annotation.color || 'yellow';
-            ctx.lineWidth = annotation.lineWidth || 2;
-            annotation.points.forEach((point, index) => {
-                if (index === 0) {
-                    ctx.moveTo(point.x, point.y);
-                } else {
-                    ctx.lineTo(point.x, point.y);
-                }
-            });
-            ctx.stroke();
-            ctx.closePath();
-        } else if (annotation.type === 'line') {
+        if (annotation.type === 'square') {
+    // Draw square annotation
+    ctx.beginPath();
+    ctx.strokeStyle = annotation.stroke || '#ffeb3b'; // Bright yellow border
+    ctx.lineWidth = annotation.strokeWidth || 3;
+    ctx.rect(annotation.x1, annotation.y1, annotation.x2 - annotation.x1, annotation.y2 - annotation.y1);
+    ctx.stroke();
+    ctx.closePath();
+}
+ else if (annotation.type === 'line') {
             // Logic for line annotation
             ctx.beginPath();
             ctx.strokeStyle = annotation.color || 'black';
@@ -336,13 +318,7 @@ function resetDrawingState() {
     fabricCanvas.off('mouse:move');
     fabricCanvas.off('mouse:up');
 }
-
-
-
-
-
 document.getElementById('file-input').addEventListener('change', handleFile);
-
 function handleFile(event) {
     const file = event.target.files[0];
     if (file) {
@@ -357,47 +333,45 @@ function handleFile(event) {
         reader.readAsArrayBuffer(file);
     }
 }
-
-
-
 function renderPage(num) {
     pdfDoc.getPage(num).then(page => {
-        const viewport = page.getViewport({ scale: 1.5 });
+        const viewport = page.getViewport({ scale: 1 });
         pdfCanvas.width = viewport.width;
         pdfCanvas.height = viewport.height;
         fabricCanvasElement.width = viewport.width;
         fabricCanvasElement.height = viewport.height;
-
         const renderContext = {
             canvasContext: pdfContext,
             viewport: viewport,
         };
-
         // Clear any existing content on the canvas before rendering new page
         pdfContext.clearRect(0, 0, pdfCanvas.width, pdfCanvas.height);
-
         page.render(renderContext).promise.then(() => {
             fabricCanvas.clear(); // Clear existing annotations for the new page
             fabricCanvas.setWidth(viewport.width);
             fabricCanvas.setHeight(viewport.height);
-
+            renderTextLayer(page, viewport);           
+            adjustTextLayer(page, viewport );
+        // Log dimensions after setting them
+        console.log('PDF Canvas Dimensions:', pdfCanvas.width, pdfCanvas.height);
+        console.log('Fabric Canvas Dimensions:', fabricCanvasElement.width, fabricCanvasElement.height);
             const scaleFactor = viewport.scale; // Current viewport scale
-
             // Reapply annotations for the current page
             if (annotationsByPage[num]) {
                 annotationsByPage[num].forEach(annotation => {
                     let obj;
-
-                    if (annotation.type === 'highlight') {
-                        obj = new fabric.Rect({
-                            left: annotation.x1 * scaleFactor,
-                            top: annotation.y1 * scaleFactor,
-                            width: (annotation.x2 - annotation.x1) * scaleFactor,
-                            height: (annotation.y2 - annotation.y1) * scaleFactor,
-                            fill: annotation.fill || 'yellow',
-                            opacity: annotation.opacity || 0.5,
-                        });
-                    } else if (annotation.type === 'line') {
+                    if (annotation.type === 'square') {
+    obj = new fabric.Rect({
+        left: annotation.x1 * scaleFactor,
+        top: annotation.y1 * scaleFactor,
+        width: (annotation.x2 - annotation.x1) * scaleFactor,
+        height: (annotation.y2 - annotation.y1) * scaleFactor,
+        fill: '', // No fill
+        stroke: annotation.stroke || '#ffeb3b', // Bright yellow for the border
+        strokeWidth: annotation.strokeWidth * scaleFactor || 3,
+    });
+}
+ else if (annotation.type === 'line') {
                         obj = new fabric.Line(
                             [
                                 annotation.x1 * scaleFactor,
@@ -425,7 +399,6 @@ function renderPage(num) {
         fontSize: (annotation.fontSize || 20) * scaleFactor, // Apply scaling to fontSize
         fill: annotation.fill || 'black',
     });
-
     fabricCanvas.add(obj);
 }
  else if (annotation.type === 'freeDraw') {
@@ -441,7 +414,6 @@ function renderPage(num) {
                             strokeWidth: (annotation.strokeWidth || 2) * scaleFactor,
                         });
                     }
-
                     if (obj) {
                         obj.id = annotation.id; // Reassign the id
                         fabricCanvas.add(obj);
@@ -449,14 +421,147 @@ function renderPage(num) {
                 });
             }
         });
-
         document.getElementById('page-num').textContent = num;
     });
 }
+function renderTextLayer(page, viewport) {
+  const textLayerDiv = document.getElementById('text-layer');
+  // Clear any previous text content
+  textLayerDiv.innerHTML = '';
+  // Dynamically resize text layer to match the PDF viewport's visible area
+  const scaleFactor = viewport.scale;
+  const scaledWidth = viewport.width; // Set based on visible viewport size
+  const scaledHeight = viewport.height;
+  textLayerDiv.style.width = `${scaledWidth}px`;
+  textLayerDiv.style.height = `${scaledHeight}px`;
+  textLayerDiv.style.transform = `scale(${scaleFactor}) translate(0, 0)`;
+  textLayerDiv.style.transformOrigin = '0 0';
+  console.log('Adjusted Text Layer Width & Height:', scaledWidth, scaledHeight);
+  // Fetch and render the text content within adjusted dimensions
+  page.getTextContent().then(textContent => {
+    pdfjsLib.renderTextLayer({
+      textContent: textContent,
+      container: textLayerDiv,
+      viewport: viewport,
+      textDivs: [],
+      enhanceTextSelection: true,
+    }).promise.then(() => {
+      console.log('Text layer successfully rendered within resized text bounds.');
+    }).catch(err => {
+      console.error('Error rendering text layer:', err);
+    });
+  }).catch(error => {
+    console.error('Error fetching text content:', error);
+  });
+}
+function onPageVisible(page) {
+    const viewport = page.getViewport({ scale: 1.5 });
+    renderTextLayer(page, viewport);
+}
+function adjustTextLayer(page, viewport) {
+  const textLayerDiv = document.getElementById('text-layer');
+  const scaleFactor = viewport.scale;
+  // Reset transformations first
+  textLayerDiv.style.transform = '';
+  textLayerDiv.style.left = '0px';
+  textLayerDiv.style.top = '0px';
+  // Apply viewport scaling directly and ensure full coverage
+  textLayerDiv.style.width = `${viewport.width}px`;
+  textLayerDiv.style.height = `${viewport.height}px`;
+  textLayerDiv.style.transform = `scale(${scaleFactor})`;
+  console.log('Text Layer dimensions adjusted to PDF Canvas', {
+    width: viewport.width,
+    height: viewport.height,
+    scaleFactor,
+  });
+}
+function disableTextLayer() {
+    document.getElementById('text-layer').style.display = 'none';
+}
+// document.querySelectorAll('#controls button').forEach(button => {
+//     button.addEventListener('click', disableTextLayer);
+// });
+function enableTextLayer() {
+    const textLayerDiv = document.getElementById('text-layer');
+    if (textLayerDiv) {
+        textLayerDiv.style.display = 'block';
+    }
+}
+document.getElementById('toggle-selection').addEventListener('change', function () {
+    const isChecked = this.checked;
+    if (isChecked) {
+        // Enable annotation selection
+        fabricCanvas.selection = true;
+        fabricCanvas.forEachObject(obj => {
+            obj.selectable = true; // Allow objects to be selectable
+        });
+        disableTextLayer(); // Disable the text layer
+    } else {
+        // Disable annotation selection
+        fabricCanvas.selection = false;
+        fabricCanvas.forEachObject(obj => {
+            obj.selectable = false; // Prevent objects from being selectable
+        });
+        enableTextLayer(); // Enable the text layer
+    }
+    fabricCanvas.renderAll(); // Re-render the canvas to apply changes
+});
+
+function addTextAnnotation(type) {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) {
+        alert('Please select some text to annotate.');
+        return;
+    }
+
+    const range = selection.getRangeAt(0);
+    const rects = range.getClientRects();
+    // const scaleFactor = getScaleFactor(); // Ensure scaling consistency
+    const textLayerDiv = document.getElementById('text-layer');
+
+    Array.from(rects).forEach(rect => {
+    if (!rect.left || !rect.top || !rect.width || !rect.height) return; // Ensure valid dimensions
+    const annotationDiv = document.createElement('div');
+    annotationDiv.style.position = 'absolute';
+    annotationDiv.style.left = `${rect.left - textLayerDiv.getBoundingClientRect().left}px`;
+    annotationDiv.style.top = `${rect.top - textLayerDiv.getBoundingClientRect().top}px`;
+    annotationDiv.style.width = `${rect.width}px`;
+    annotationDiv.style.height = `${rect.height}px`;
+
+    if (type === 'highlight') {
+        annotationDiv.style.backgroundColor = 'yellow';
+        annotationDiv.style.opacity = '0.5';
+    } else if (type === 'underline') {
+        annotationDiv.style.borderBottom = '2px solid red';
+    } else if (type === 'strikeout') {
+        annotationDiv.style.borderTop = '2px solid black';
+        annotationDiv.style.transform = `translateY(${rect.height / 2}px)`;
+    }
+
+    annotationDiv.classList.add('text-annotation');
+    annotationDiv.dataset.annotationType = type;
+    // console.log("text annotations => ", type);
+
+    textLayerDiv.appendChild(annotationDiv);
+
+    // Pass the correct coordinates to storeAnnotation
+    storeAnnotation(type, {
+        left: rect.left - textLayerDiv.getBoundingClientRect().left,
+        top: rect.top - textLayerDiv.getBoundingClientRect().top,
+        width: rect.width,
+        height: rect.height
+    });
+});
 
 
+    // Clear selection after applying annotation
+    selection.removeAllRanges();
+}
 
-
+// Example usage for highlight, underline, and strike-out
+document.querySelector('button#highlight').addEventListener('click', () => addTextAnnotation('highlight'));
+document.querySelector('button#underline').addEventListener('click', () => addTextAnnotation('underline'));
+document.querySelector('button#strikeout').addEventListener('click', () => addTextAnnotation('strikeout'));
 
 
 
@@ -467,35 +572,28 @@ function getScaleFactor() {
         y: pdfCanvas.height / fabricCanvas.getHeight(),
     };
 }
-
-
 function prevPage() {
     if (pageNum <= 1) return;
     pageNum--;
     renderPage(pageNum);
 }
-
 function nextPage() {
     if (pageNum >= pdfDoc.numPages) return;
     pageNum++;
     renderPage(pageNum);
 }
-
 // Function to store annotations with scaling applied based on the current page's viewport
 function storeAnnotation(type, obj) {
     const scaleFactor = getScaleFactor();
-
     if (!annotationsByPage[pageNum]) {
         annotationsByPage[pageNum] = [];
     }
-
     const annotationExists = annotationsByPage[pageNum].find((ann) => ann.id === obj.id);
     if (annotationExists) {
         console.warn("Annotation already exists:", obj.id);
         return; // Avoid duplicate storage
     }
     obj.id = obj.id || Date.now() + Math.random().toString(36).substr(2, 9);
-
     const annotation = {
         id: obj.id,
         type: type,
@@ -506,17 +604,19 @@ function storeAnnotation(type, obj) {
         page: pageNum,
         title: "", // Default title if not set
         subject: "", // Default subject if not set
-        content: "", // Default content if not set
+        content: obj.text || "Enter Text", // Correctly capture textbox text
+        color: type === 'highlight' ? 'yellow' : undefined,
+        stroke: type === 'underline' ? 'red' : type === 'strikeout' ? 'black' : undefined,
     };
-
     // Add title, subject, and content for each annotation type
-    if (type === "highlight") {
-        annotation.title = "Highlight Title";  // Custom title
-        annotation.subject = "Highlight Subject";  // Custom subject
-        annotation.content = "This is a highlight annotation.";  // Custom content
-        annotation.fill = obj.fill;
-        annotation.opacity = obj.opacity;
-    } else if (type === "circle") {
+    if (type === "square") {
+    annotation.title = "Square Title";  // Custom title
+    annotation.subject = "Square Subject";  // Custom subject
+    annotation.content = "This is a square annotation.";  // Custom content
+    annotation.stroke = obj.stroke;
+    annotation.strokeWidth = obj.strokeWidth;
+}
+ else if (type === "circle") {
         annotation.title = "Circle Title";
         annotation.subject = "Circle Subject";
         annotation.content = "This is a circle annotation.";
@@ -533,6 +633,7 @@ function storeAnnotation(type, obj) {
     } else if (type === "text") {
     annotation.subject = "Text Subject";
     annotation.title = "Text";
+    annotation.text = obj.text || ""; // Extract actual text content
     annotation.text = obj.text;  // Store the text content
     annotation.fontSize = obj.fontSize / scaleFactor.x; // Store font size, adjusted for scale
     annotation.fill = obj.fill;  // Store color
@@ -550,6 +651,25 @@ function storeAnnotation(type, obj) {
         annotation.path = obj.path;
         annotation.stroke = obj.stroke;
         annotation.strokeWidth = obj.strokeWidth / scaleFactor.x;
+    } else  if (type === "highlight") {
+        annotation.title = "Highlight Title";
+        annotation.subject = "Highlight Subject";
+        annotation.content = "This is a highligh annotation.";
+        annotation.color = "yellow";
+        annotation.opacity = 0.5;
+    } else if (type === "underline") {
+        annotation.title = "Underline Title";
+        annotation.subject = "Underline Subject";
+        annotation.content = "This is a underline annotation.";
+        annotation.stroke = "red";
+        annotation.strokeWidth = 2;
+    } else if (type === "strikeout") {
+        annotation.title = "Strike-out Title";
+        annotation.subject = "Strike-out Subject";
+        annotation.content = "This is a strike-out annotation.";
+        annotation.stroke = "black";
+        annotation.strokeWidth = 2;
+        annotation.translateY = obj.height / 2;
     }
 
     annotationsByPage[pageNum].push(annotation);
@@ -557,37 +677,32 @@ function storeAnnotation(type, obj) {
 }
 
 function addCloudAnnotation() {
+    disableTextLayer(); // Disable the text layer
     resetDrawingState();
     let polygonPoints = [];
     let tempPath = null;
     let isDrawing = true;
-
     const cloudColor = 'red';
     const cloudStrokeWidth = 2;
     const cloudRadius = 20; 
     const cloudOverlap = 0.8333;
     const cloudFillColor = 'transparent';
-
     function cleanupListeners() {
         fabricCanvas.off('mouse:down');
         fabricCanvas.off('mouse:dblclick');
         fabricCanvas.off('mouse:up');
+        enableTextLayer();
     }
-
     fabricCanvas.on('mouse:down', function (e) {
         if (!isDrawing) return;
-
         const pointer = fabricCanvas.getPointer(e.e);
         polygonPoints.push(new Point(pointer.x, pointer.y));
         updateCloudPreview();
     });
-
     fabricCanvas.on('mouse:dblclick', function () {
         if (polygonPoints.length < 3) return;
-
         polygonPoints.push(polygonPoints[0]);
         const cloudPathData = generateCloudPath(polygonPoints);
-
         const cloudPath = new fabric.Path(cloudPathData, {
             fill: cloudFillColor,
             stroke: cloudColor,
@@ -595,44 +710,37 @@ function addCloudAnnotation() {
             selectable: true,
             annotationType: 'cloud',  // Add annotationType property here
         });
-
         fabricCanvas.add(cloudPath);
-
         if (tempPath) fabricCanvas.remove(tempPath);
         polygonPoints = [];
         tempPath = null;
         isDrawing = false;
-
         cleanupListeners();
         storeAnnotation("cloud", cloudPath);
-    });
+       // Trigger comment popup at cloud's bounding box
+    const bounds = cloudPath.getBoundingRect();
 
+    });
     fabricCanvas.on('mouse:up', function () {
         isDrawing = true;
     });
-
     function updateCloudPreview() {
         if (polygonPoints.length < 2) return;
         const cloudPathData = generateCloudPath(polygonPoints);
-
         if (tempPath) fabricCanvas.remove(tempPath);
-
         tempPath = new fabric.Path(cloudPathData, {
             fill: 'transparent',
             stroke: cloudColor,
             strokeWidth: cloudStrokeWidth,
             selectable: false,
         });
-
         fabricCanvas.add(tempPath);
     }
-
     function generateCloudPath(points) {
         const pathData = [];
         let prev = points[points.length - 1];
         const delta = 2 * cloudRadius * cloudOverlap;
         const circlePoints = [];
-
         for (let i = 0; i < points.length; i++) {
             const curr = points[i];
             const dx = curr.x - prev.x;
@@ -645,19 +753,16 @@ function addCloudAnnotation() {
             }
             prev = curr;
         }
-
         prev = circlePoints[circlePoints.length - 1];
         for (let i = 0; i < circlePoints.length; i++) {
             const curr = circlePoints[i];
             const angle = intersect(prev, curr, cloudRadius);
-
             pathData.push(`M ${prev.x} ${prev.y}`);
             pathData.push(`A ${cloudRadius},${cloudRadius} 0 0,1 ${curr.x},${curr.y}`);
             prev = curr;
         }
         return pathData.join(' ');
     }
-
     function intersect(p, q, r) {
         const dx = q.x - p.x;
         const dy = q.y - p.y;
@@ -665,80 +770,70 @@ function addCloudAnnotation() {
         const a = Math.min(Math.max(0.5 * len / r, -1), 1);
         const phi = Math.atan2(dy, dx);
         const gamma = Math.acos(a);
-
         return [phi - gamma, phi + gamma];
     }
-
     function Point(x, y) {
         this.x = x;
         this.y = y;
     }
+    
 }
-
-
-
-
-
-
-
-function addHighlight() {
+function addSquare() {
+    disableTextLayer(); // Disable the text layer
     resetDrawingState();
     isDrawing = true;
     fabricCanvas.isDrawingMode = false;  // Disable free drawing mode
     fabricCanvas.selection = true;      // Disable object selection
-
     let rect; // Declare the rectangle outside of the event handlers
-
     fabricCanvas.on('mouse:down', function (e) {
         const pointer = fabricCanvas.getPointer(e.e);
         startX = pointer.x;
         startY = pointer.y;
-
-        // Create the rectangle (highlight) at mouse down
+        // Create the rectangle (square annotation) at mouse down
         rect = new fabric.Rect({
             left: startX,
             top: startY,
             width: 0,
             height: 0,
-            fill: 'yellow',
-            opacity: 0.5,
+            fill: '', // No fill
+            stroke: '#ffeb3b', // Bright yellow for the border
+            strokeWidth: 3,    // Border thickness
+            annotationType: 'square', // Set type early
+            id: Date.now() + Math.random().toString(36).substr(2, 9),
         });
-
         fabricCanvas.add(rect);
     });
 
     fabricCanvas.on('mouse:move', function (e) {
-        if (!rect) return; // If the rectangle isn't created, return
+        if (!rect) return;
         const pointer = fabricCanvas.getPointer(e.e);
-        const width = pointer.x - startX;
-        const height = pointer.y - startY;
-
-        // Update the width and height of the rectangle while the mouse is moving
-        rect.set({ width: width, height: height });
-        fabricCanvas.renderAll(); // Re-render the canvas to reflect changes
+        rect.set({ width: pointer.x - startX, height: pointer.y - startY });
+        fabricCanvas.renderAll();
     });
 
     fabricCanvas.on('mouse:up', function () {
-        if (!rect) return; // If the rectangle isn't created, return
-        storeAnnotation('highlight', rect); // Store the annotation once drawing is finished
+        if (!rect) return;
+        console.log("Square drawn:", rect);
+
+        storeAnnotation('square', rect);
         isDrawing = false;
 
-        // Remove event listeners to stop drawing after mouse up
         fabricCanvas.off('mouse:down');
         fabricCanvas.off('mouse:move');
         fabricCanvas.off('mouse:up');
+        
+        enableTextLayer();
+
     });
 }
 
-
 function addLine() {
+    disableTextLayer(); // Disable the text layer
     resetDrawingState(); // Reset any active drawing state
     isDrawing = true;
     fabricCanvas.isDrawingMode = false;
     fabricCanvas.selection = true;
-
     let line;
-
     // Start drawing
     const mouseDownHandler = function (e) {
         const pointer = fabricCanvas.getPointer(e.e);
@@ -750,7 +845,6 @@ function addLine() {
         });
         fabricCanvas.add(line);
     };
-
     // Update line as the mouse moves
     const mouseMoveHandler = function (e) {
         if (!line) return;
@@ -758,34 +852,30 @@ function addLine() {
         line.set({ x2: pointer.x, y2: pointer.y });
         fabricCanvas.renderAll();
     };
-
     // End drawing
     const mouseUpHandler = function () {
         if (!line) return;
         storeAnnotation('line', line);
         isDrawing = false;
-
         // Remove event listeners
         fabricCanvas.off('mouse:down', mouseDownHandler);
         fabricCanvas.off('mouse:move', mouseMoveHandler);
         fabricCanvas.off('mouse:up', mouseUpHandler);
-    };
+     enableTextLayer(); // Re-enable the text layer
 
+    };
     // Attach event listeners
     fabricCanvas.on('mouse:down', mouseDownHandler);
     fabricCanvas.on('mouse:move', mouseMoveHandler);
     fabricCanvas.on('mouse:up', mouseUpHandler);
 }
-
-
 function addCircle() {
+    disableTextLayer(); // Disable the text layer
     resetDrawingState(); // Reset any active drawing state
     isDrawing = true;
     fabricCanvas.isDrawingMode = false;
     fabricCanvas.selection = true;
-
     let circle;
-
     // Start drawing
     const mouseDownHandler = function (e) {
         const pointer = fabricCanvas.getPointer(e.e);
@@ -799,7 +889,6 @@ function addCircle() {
         });
         fabricCanvas.add(circle);
     };
-
     // Update circle as the mouse moves
     const mouseMoveHandler = function (e) {
         if (!circle) return;
@@ -810,39 +899,41 @@ function addCircle() {
         circle.set({ radius: radius });
         fabricCanvas.renderAll();
     };
-
     // End drawing
     const mouseUpHandler = function () {
         if (!circle) return;
         storeAnnotation('circle', circle);
         isDrawing = false;
-
         // Remove event listeners
         fabricCanvas.off('mouse:down', mouseDownHandler);
         fabricCanvas.off('mouse:move', mouseMoveHandler);
         fabricCanvas.off('mouse:up', mouseUpHandler);
-    };
+        enableTextLayer(); // Re-enable the text layer
 
+    };
     // Attach event listeners
     fabricCanvas.on('mouse:down', mouseDownHandler);
     fabricCanvas.on('mouse:move', mouseMoveHandler);
     fabricCanvas.on('mouse:up', mouseUpHandler);
 }
 function addFreeDraw() {
+    disableTextLayer(); // Disable the text layer
             resetDrawingState();
             fabricCanvas.isDrawingMode = true; // Enable free drawing mode
             fabricCanvas.freeDrawingBrush.color = "black"; // Set drawing color
             fabricCanvas.freeDrawingBrush.width = 2; // Set brush width
-
             // Event listener to capture the drawn paths
             fabricCanvas.on("path:created", function (e) {
                 const path = e.path;
                 storeAnnotation("freeDraw", path);
+                const centerX = path.left + path.width / 2;
+    const centerY = path.top + path.height / 2;
+
             });
+             
         }
-
-
 function addText() {
+    disableTextLayer(); // Disable the text layer
     resetDrawingState();
     const text = new fabric.Textbox('Enter Text', {
         left: 50,
@@ -850,10 +941,11 @@ function addText() {
         fontSize: 20,
         fill: 'black',
     });
-
     fabricCanvas.add(text);
     text.set({ editable: true });
     storeAnnotation('text', text);
+    //enableTextLayer(); // Re-enable the text layer
+
 }
 document.getElementById('toggle-free-draw').addEventListener('click', enableFreeDraw);
 // Update and store annotations for all object types
@@ -862,20 +954,16 @@ fabricCanvas.on('object:modified', function (e) {
     if (obj && annotationsByPage[pageNum]) {
         const pageAnnotations = annotationsByPage[pageNum];
         const annotationIndex = pageAnnotations.findIndex(ann => ann.id === obj.id);
-
         if (annotationIndex !== -1) {
             const annotation = pageAnnotations[annotationIndex];
-
             // Update common properties
             annotation.x1 = obj.left;
             annotation.y1 = obj.top;
-
             // Update specific properties based on the object type
             if (obj.type === 'textbox') {
                 annotation.text = obj.text;
                 annotation.x2 = obj.left + obj.width;
                 annotation.y2 = obj.top + obj.height;
-                
             } else if (obj.type === 'rect') {
                 annotation.x2 = obj.left + obj.width;
                 annotation.y2 = obj.top + obj.height;
@@ -885,30 +973,23 @@ fabricCanvas.on('object:modified', function (e) {
                 annotation.x2 = obj.x2;
                 annotation.y2 = obj.y2;
             } 
-
             // Save the updated annotation
             annotationsByPage[pageNum][annotationIndex] = annotation;
         }
     }
 });
-
 function undo() {
     const objects = fabricCanvas.getObjects();
     if (objects.length > 0) {
         const last = objects[objects.length - 1];
         redoStack.push(last); // Push the removed object to the redo stack
-
         // Remove the annotation from `annotationsByPage`
         if (annotationsByPage[pageNum]) {
             annotationsByPage[pageNum] = annotationsByPage[pageNum].filter(ann => ann.id !== last.id);
         }
-
         fabricCanvas.remove(last);
     }
 }
-
-
-
 function redo() {
     if (redoStack.length > 0) {
         const lastRedo = redoStack.pop();
@@ -921,42 +1002,75 @@ function redo() {
         }
     }
 }
-
-
 // Assuming fabricCanvas and pageNum are defined in your application
-
 function save() {
     const annotations = [];
-    
+    Object.keys(annotationsByPage).forEach(pageNum => {
+        annotations.push(...annotationsByPage[pageNum]);
+    });
     // Loop through each object on the canvas
     fabricCanvas.getObjects().forEach(obj => {
+        if (!obj.id || annotations.find(ann => ann.id === obj.id)) {
+            return; // Skip objects already stored
+        }
+        console.log("Object on canvas:", obj); // Debugging output
         // Process different object types and add them to annotations
         if (obj.type === 'textbox') {
+            console.log("Saving textbox object:", obj); // Debugging object
             annotations.push({
                 type: 'text',
-                page: pageNum, // Add the current page number
+                page: pageNum,
                 x1: obj.left,
                 y1: obj.top,
                 x2: obj.left + obj.width,
                 y2: obj.top + obj.height,
-                text: obj.text,
-                title: "Text ",  // Add title
-                subject: "Text Subject",  // Add subject
-
+                text: obj.text || "Enter Text", // Ensure default text if not set
+                title: "Text",
+                subject: "Text Subject",
             });
-        } else if (obj.type === 'rect') {
+        }else   if (obj.annotationType === 'highlight') {
             annotations.push({
                 type: 'highlight',
-                page: pageNum, // Add the current page number
+                page: pageNum,
                 x1: obj.left,
                 y1: obj.top,
                 x2: obj.left + obj.width,
                 y2: obj.top + obj.height,
                 fill: obj.fill,
-                opacity: obj.opacity,
-                title: "Highlight ",  // Add title
-                subject: "Highlight Subject",  // Add subject
-                content: "This is a highlight annotation."  // Add content
+            });
+        } else if (obj.annotationType === 'underline') {
+            annotations.push({
+                type: 'underline',
+                page: pageNum,
+                x1: obj.left,
+                y1: obj.top,
+                x2: obj.left + obj.width,
+                y2: obj.top + obj.height,
+            });
+        } else if (obj.annotationType === 'strikeout') {
+            annotations.push({
+                type: 'strikeout',
+                page: pageNum,
+                x1: obj.left,
+                y1: obj.top,
+                x2: obj.left + obj.width,
+                y2: obj.top + obj.height,
+            });
+        }
+ else  if (obj.annotationType === 'square') {
+            annotations.push({
+                id: obj.id,
+                type: 'square',
+                page: pageNum,
+                x1: obj.left,
+                y1: obj.top,
+                x2: obj.left + obj.width,
+                y2: obj.top + obj.height,
+                stroke: obj.stroke,
+                strokeWidth: obj.strokeWidth,
+                title: "Square Annotation",
+                subject: "Square Subject",
+                content: "This is a square annotation."
             });
         } else if (obj.type === 'circle') {
             annotations.push({
@@ -1009,13 +1123,9 @@ function save() {
             });
         }
     }
-
-
     });
-
     // Example logic to save or process annotations
     console.log("Annotations Saved:", annotations);
-
     // You can replace the above console log with code to save annotations to a database or server
     // Example: send a POST request
     const fileInput = document.getElementById('file-input');
@@ -1040,7 +1150,6 @@ function save() {
             console.error("Error saving PDF:", error);
         });
     };
-
     if (fileInput.files.length > 0) {
         reader.readAsDataURL(fileInput.files[0]);
     } else {
@@ -1062,10 +1171,7 @@ fabricCanvasElement.addEventListener('mouseup', () => {
     isDrawing = false;
     pdfContext.closePath();
 });
-
 console.log("Annotations to be sent:", annotations);
-
     </script>
 </body>
 </html>
-
