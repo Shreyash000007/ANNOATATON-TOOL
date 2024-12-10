@@ -507,6 +507,37 @@ document.getElementById('toggle-selection').addEventListener('change', function 
     fabricCanvas.renderAll(); // Re-render the canvas to apply changes
 });
 
+let annotations = []; // Array to store all annotations
+
+let currentAnnotationType = null; // Global state to track the current annotation tool
+
+// Set annotation mode when a button is clicked
+function setAnnotationMode(type) {
+    currentAnnotationType = type;
+    document.body.style.cursor = type ? 'text' : 'default'; // Change cursor to indicate annotation mode
+    //alert(`Annotation mode: ${type}. Select text to annotate.`);
+}
+
+// Add event listeners to buttons
+document.querySelector('button#highlight').addEventListener('click', () => setAnnotationMode('highlight'));
+document.querySelector('button#underline').addEventListener('click', () => setAnnotationMode('underline'));
+document.querySelector('button#strikeout').addEventListener('click', () => setAnnotationMode('strikeout'));
+
+// Listen for text selection
+document.addEventListener('mouseup', () => {
+    if (!currentAnnotationType) return;
+
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        if (!range.collapsed) {
+            addTextAnnotation(currentAnnotationType); // Call your existing function
+            setAnnotationMode(null); // Exit annotation mode after use
+        }
+    }
+});
+
+// Modified addTextAnnotation function
 function addTextAnnotation(type) {
     const selection = window.getSelection();
     if (!selection.rangeCount) {
@@ -516,53 +547,44 @@ function addTextAnnotation(type) {
 
     const range = selection.getRangeAt(0);
     const rects = range.getClientRects();
-    // const scaleFactor = getScaleFactor(); // Ensure scaling consistency
     const textLayerDiv = document.getElementById('text-layer');
 
     Array.from(rects).forEach(rect => {
-    if (!rect.left || !rect.top || !rect.width || !rect.height) return; // Ensure valid dimensions
-    const annotationDiv = document.createElement('div');
-    annotationDiv.style.position = 'absolute';
-    annotationDiv.style.left = `${rect.left - textLayerDiv.getBoundingClientRect().left}px`;
-    annotationDiv.style.top = `${rect.top - textLayerDiv.getBoundingClientRect().top}px`;
-    annotationDiv.style.width = `${rect.width}px`;
-    annotationDiv.style.height = `${rect.height}px`;
+        if (!rect.left || !rect.top || !rect.width || !rect.height) return; // Ensure valid dimensions
+        const annotationDiv = document.createElement('div');
+        annotationDiv.style.position = 'absolute';
+        annotationDiv.style.left = `${rect.left - textLayerDiv.getBoundingClientRect().left}px`;
+        annotationDiv.style.top = `${rect.top - textLayerDiv.getBoundingClientRect().top}px`;
+        annotationDiv.style.width = `${rect.width}px`;
+        annotationDiv.style.height = `${rect.height}px`;
 
-    if (type === 'highlight') {
-        annotationDiv.style.backgroundColor = 'yellow';
-        annotationDiv.style.opacity = '0.5';
-    } else if (type === 'underline') {
-        annotationDiv.style.borderBottom = '2px solid red';
-    } else if (type === 'strikeout') {
-        annotationDiv.style.borderTop = '2px solid black';
-        annotationDiv.style.transform = `translateY(${rect.height / 2}px)`;
-    }
+        if (type === 'highlight') {
+            annotationDiv.style.backgroundColor = 'yellow';
+            annotationDiv.style.opacity = '0.5';
+        } else if (type === 'underline') {
+            annotationDiv.style.borderBottom = '2px solid red';
+        } else if (type === 'strikeout') {
+            annotationDiv.style.borderTop = '2px solid black';
+            annotationDiv.style.transform = `translateY(${rect.height / 2}px)`;
+        }
 
-    annotationDiv.classList.add('text-annotation');
-    annotationDiv.dataset.annotationType = type;
-    // console.log("text annotations => ", type);
+        annotationDiv.classList.add('text-annotation');
+        annotationDiv.dataset.annotationType = type;
 
-    textLayerDiv.appendChild(annotationDiv);
+        textLayerDiv.appendChild(annotationDiv);
 
-    // Pass the correct coordinates to storeAnnotation
-    storeAnnotation(type, {
-        left: rect.left - textLayerDiv.getBoundingClientRect().left,
-        top: rect.top - textLayerDiv.getBoundingClientRect().top,
-        width: rect.width,
-        height: rect.height
+        // Pass the correct coordinates to storeAnnotation
+        storeAnnotation(type, {
+            left: rect.left - textLayerDiv.getBoundingClientRect().left,
+            top: rect.top - textLayerDiv.getBoundingClientRect().top,
+            width: rect.width,
+            height: rect.height
+        });
     });
-});
-
 
     // Clear selection after applying annotation
     selection.removeAllRanges();
 }
-
-// Example usage for highlight, underline, and strike-out
-document.querySelector('button#highlight').addEventListener('click', () => addTextAnnotation('highlight'));
-document.querySelector('button#underline').addEventListener('click', () => addTextAnnotation('underline'));
-document.querySelector('button#strikeout').addEventListener('click', () => addTextAnnotation('strikeout'));
-
 
 
 // Function to get the scaling factor between the PDF page and canvas
@@ -1156,6 +1178,7 @@ function save() {
         alert("No file selected!");
     }
 }
+
 fabricCanvasElement.addEventListener('mousedown', (e) => {
     isDrawing = true;
     pdfContext.beginPath();
