@@ -307,7 +307,17 @@ function redrawAnnotations() {
             );
             ctx.stroke();
             ctx.closePath();
-        }
+        }else if (annotation.type === 'text') {
+    // Logic for rendering text annotation
+    const obj = new fabric.Textbox(annotation.content || 'Enter Text', {
+        left: annotation.x1 * scaleFactor,
+        top: annotation.y1 * scaleFactor,
+        fontSize: (annotation.fontSize || 20) * scaleFactor, // Apply scaling to fontSize
+        fill: annotation.fill || 'black',
+    });
+    fabricCanvas.add(obj);
+}
+
     });
 }
 function resetDrawingState() {
@@ -393,7 +403,7 @@ function renderPage(num) {
                         });
                     } else if (annotation.type === 'text') {
     // Ensure proper scaling of the position and font size
-    obj = new fabric.Textbox(annotation.text || 'Enter Text', {
+     obj = new fabric.Textbox(annotation.content || 'Enter Text', {
         left: annotation.x1 * scaleFactor,
         top: annotation.y1 * scaleFactor,
         fontSize: (annotation.fontSize || 20) * scaleFactor, // Apply scaling to fontSize
@@ -424,57 +434,51 @@ function renderPage(num) {
         document.getElementById('page-num').textContent = num;
     });
 }
-function renderTextLayer(page, viewport) {
-  const textLayerDiv = document.getElementById('text-layer');
-  // Clear any previous text content
-  textLayerDiv.innerHTML = '';
-  // Dynamically resize text layer to match the PDF viewport's visible area
-  const scaleFactor = viewport.scale;
-  const scaledWidth = viewport.width; // Set based on visible viewport size
-  const scaledHeight = viewport.height;
-  textLayerDiv.style.width = `${scaledWidth}px`;
-  textLayerDiv.style.height = `${scaledHeight}px`;
-  textLayerDiv.style.transform = `scale(${scaleFactor}) translate(0, 0)`;
-  textLayerDiv.style.transformOrigin = '0 0';
-  console.log('Adjusted Text Layer Width & Height:', scaledWidth, scaledHeight);
-  // Fetch and render the text content within adjusted dimensions
-  page.getTextContent().then(textContent => {
-    pdfjsLib.renderTextLayer({
-      textContent: textContent,
-      container: textLayerDiv,
-      viewport: viewport,
-      textDivs: [],
-      enhanceTextSelection: true,
-    }).promise.then(() => {
-      console.log('Text layer successfully rendered within resized text bounds.');
-    }).catch(err => {
-      console.error('Error rendering text layer:', err);
+function storeAnnotation(type, coordinates, pageNum) {
+    annotations.push({
+        type: type,
+        coordinates: coordinates,
+        pageNum: pageNum
     });
-  }).catch(error => {
-    console.error('Error fetching text content:', error);
-  });
 }
-function onPageVisible(page) {
-    const viewport = page.getViewport({ scale: 1.5 });
-    renderTextLayer(page, viewport);
+function onPageVisible(page, pageNum) {
+    const viewport = page.getViewport({ scale: 1});
+    renderTextLayer(page, viewport, pageNum);
 }
-function adjustTextLayer(page, viewport) {
-  const textLayerDiv = document.getElementById('text-layer');
-  const scaleFactor = viewport.scale;
-  // Reset transformations first
-  textLayerDiv.style.transform = '';
-  textLayerDiv.style.left = '0px';
-  textLayerDiv.style.top = '0px';
-  // Apply viewport scaling directly and ensure full coverage
-  textLayerDiv.style.width = `${viewport.width}px`;
-  textLayerDiv.style.height = `${viewport.height}px`;
-  textLayerDiv.style.transform = `scale(${scaleFactor})`;
-  console.log('Text Layer dimensions adjusted to PDF Canvas', {
-    width: viewport.width,
-    height: viewport.height,
-    scaleFactor,
-  });
+
+
+function renderTextLayer(page, viewport, pageNum) {
+    const textLayerDiv = document.getElementById('text-layer');
+    textLayerDiv.innerHTML = '';
+
+    const scaleFactor = viewport.scale;
+    const scaledWidth = viewport.width;
+    const scaledHeight = viewport.height;
+    textLayerDiv.style.width = `${scaledWidth}px`;
+    textLayerDiv.style.height = `${scaledHeight}px`;
+    textLayerDiv.style.transform = `scale(${scaleFactor}) translate(0, 0)`;
+    textLayerDiv.style.transformOrigin = '0 0';
+
+    page.getTextContent().then(textContent => {
+        pdfjsLib.renderTextLayer({
+            textContent: textContent,
+            container: textLayerDiv,
+            viewport: viewport,
+            textDivs: [],
+            enhanceTextSelection: true,
+        }).promise.then(() => {
+            console.log('Text layer successfully rendered.');
+
+            // Render annotations for this page
+            renderAnnotations(pageNum);
+        }).catch(err => {
+            console.error('Error rendering text layer:', err);
+        });
+    }).catch(error => {
+        console.error('Error fetching text content:', error);
+    });
 }
+
 function disableTextLayer() {
     document.getElementById('text-layer').style.display = 'none';
 }
@@ -536,6 +540,40 @@ document.addEventListener('mouseup', () => {
         }
     }
 });
+
+function renderAnnotations(pageNum) {
+    const textLayerDiv = document.getElementById('text-layer');
+    
+    // Filter annotations for the current page
+    const pageAnnotations = annotations.filter(ann => ann.pageNum === pageNum);
+
+    pageAnnotations.forEach(annotation => {
+        const { type, coordinates } = annotation;
+
+        const annotationDiv = document.createElement('div');
+        annotationDiv.style.position = 'absolute';
+        annotationDiv.style.left = `${coordinates.left}px`;
+        annotationDiv.style.top = `${coordinates.top}px`;
+        annotationDiv.style.width = `${coordinates.width}px`;
+        annotationDiv.style.height = `${coordinates.height}px`;
+
+        if (type === 'highlight') {
+            annotationDiv.style.backgroundColor = 'yellow';
+            annotationDiv.style.opacity = '0.5';
+        } else if (type === 'underline') {
+            annotationDiv.style.borderBottom = '2px solid red';
+        } else if (type === 'strikeout') {
+            annotationDiv.style.borderTop = '2px solid black';
+            annotationDiv.style.transform = `translateY(${coordinates.height / 2}px)`;
+        }
+
+        annotationDiv.classList.add('text-annotation');
+        annotationDiv.dataset.annotationType = type;
+
+        textLayerDiv.appendChild(annotationDiv);
+    });
+}
+
 
 // Modified addTextAnnotation function
 function addTextAnnotation(type) {
@@ -626,7 +664,8 @@ function storeAnnotation(type, obj) {
         page: pageNum,
         title: "", // Default title if not set
         subject: "", // Default subject if not set
-        content: obj.text || "Enter Text", // Correctly capture textbox text
+        content: type === 'text' ? obj.text : "Enter Text",
+        fontSize: obj.fontSize / Math.min(scaleFactor.x, scaleFactor.y), // Use the smaller scale factor for font size
         color: type === 'highlight' ? 'yellow' : undefined,
         stroke: type === 'underline' ? 'red' : type === 'strikeout' ? 'black' : undefined,
     };
@@ -652,14 +691,14 @@ function storeAnnotation(type, obj) {
         annotation.y2 = obj.y2 / scaleFactor.y;
         annotation.stroke = obj.stroke;
         annotation.strokeWidth = obj.strokeWidth / scaleFactor.x;
-    } else if (type === "text") {
+    } if (type === "text") {
     annotation.subject = "Text Subject";
     annotation.title = "Text";
-    annotation.text = obj.text || ""; // Extract actual text content
-    annotation.text = obj.text;  // Store the text content
+    annotation.text = obj.text || ""; // Ensure you store the actual text input
     annotation.fontSize = obj.fontSize / scaleFactor.x; // Store font size, adjusted for scale
     annotation.fill = obj.fill;  // Store color
-} else if (type === "freeDraw") {
+}
+ else if (type === "freeDraw") {
         annotation.title = "Free Draw Title";
         annotation.subject = "Free Draw Subject";
         annotation.content = "This is a Free Draw annotation.";
@@ -892,52 +931,154 @@ function addLine() {
     fabricCanvas.on('mouse:up', mouseUpHandler);
 }
 function addCircle() {
-    disableTextLayer(); // Disable the text layer
-    resetDrawingState(); // Reset any active drawing state
-    isDrawing = true;
-    fabricCanvas.isDrawingMode = false;
-    fabricCanvas.selection = true;
-    let circle;
-    // Start drawing
-    const mouseDownHandler = function (e) {
-        const pointer = fabricCanvas.getPointer(e.e);
-        startX = pointer.x;
-        startY = pointer.y;
-        circle = new fabric.Circle({
+            disableTextLayer(); // Disable the text layer
+            resetDrawingState(); // Reset any active drawing state
+            isDrawing = true;
+            fabricCanvas.isDrawingMode = false;
+            fabricCanvas.selection = true;
+
+            let circle;
+
+            // Mouse down event - initialize circle
+            const mouseDownHandler = function (e) {
+                const pointer = fabricCanvas.getPointer(e.e);
+                startX = pointer.x;
+                startY = pointer.y;
+
+                // Create new circle
+                circle = new fabric.Circle({
+                    left: startX,
+                    top: startY,
+                    radius: 0, // Start with a radius of 0
+                    fill: 'transparent',
+                    stroke: 'red', // Set the border color
+                    strokeWidth: 3 // Set the stroke width
+                });
+
+                fabricCanvas.add(circle);
+            };
+
+            // Mouse move event - dynamically resize the circle as you drag
+            const mouseMoveHandler = function (e) {
+                if (!circle) return;
+
+                const pointer = fabricCanvas.getPointer(e.e);
+                const radius = Math.sqrt(
+                    Math.pow(pointer.x - startX, 2) + Math.pow(pointer.y - startY, 2)
+                );
+
+                circle.set({ radius });
+                fabricCanvas.renderAll();
+            };
+
+            // Mouse up event - finalize drawing
+            const mouseUpHandler = function () {
+                if (!circle) return;
+
+                storeAnnotation('circle', circle);
+                isDrawing = false;
+
+                // Remove event listeners to clean up
+                fabricCanvas.off('mouse:down', mouseDownHandler);
+                fabricCanvas.off('mouse:move', mouseMoveHandler);
+                fabricCanvas.off('mouse:up', mouseUpHandler);
+
+                enableTextLayer(); // Re-enable the text layer
+            };
+
+            // Attach event listeners
+            fabricCanvas.on('mouse:down', mouseDownHandler);
+            fabricCanvas.on('mouse:move', mouseMoveHandler);
+            fabricCanvas.on('mouse:up', mouseUpHandler);
+        }
+
+ function addText() {
+            disableTextLayer(); // Disable text layer during interaction
+            resetDrawingState();
+            isDrawing = true;
+            fabricCanvas.isDrawingMode = false;
+            fabricCanvas.selection = true;
+
+            let textObj = null, startX = 0, startY = 0;
+
+
+            // Mouse down - Capture initial click point and create text object
+            const mouseDownHandler = function (e) {
+                const pointer = fabricCanvas.getPointer(e.e);
+                startX = pointer.x;
+                startY = pointer.y;
+
+
+        textObj = new fabric.Textbox('Enter text', {
             left: startX,
             top: startY,
-            radius: 0,
-            fill: 'rgba(0, 0, 255, 0.5)',
+            fontSize: 10,
+            fill: 'black',
+            editable: true,
+            id: `text-${Date.now()}`, // Assign unique ID
         });
-        fabricCanvas.add(circle);
-    };
-    // Update circle as the mouse moves
+
+                fabricCanvas.add(textObj);
+            };
+
+           // Mouse move: Adjust textbox size dynamically
     const mouseMoveHandler = function (e) {
-        if (!circle) return;
+        if (!textObj) return;
         const pointer = fabricCanvas.getPointer(e.e);
-        const radius = Math.sqrt(
+
+        const distance = Math.sqrt(
             Math.pow(pointer.x - startX, 2) + Math.pow(pointer.y - startY, 2)
         );
-        circle.set({ radius: radius });
+
+        const newFontSize = Math.max(10, Math.min(50, distance / 2));
+        textObj.set({ fontSize: newFontSize });
         fabricCanvas.renderAll();
     };
-    // End drawing
+
+          // Mouse up: Finalize and store the annotation
     const mouseUpHandler = function () {
-        if (!circle) return;
-        storeAnnotation('circle', circle);
+        if (!textObj) return;
+
+        storeAnnotation('text', textObj);
+        // Listen for changes to the text content
+        textObj.on('changed', () => {
+            updateStoredAnnotation(textObj.id, { text: textObj.text });
+        });
         isDrawing = false;
-        // Remove event listeners
+
         fabricCanvas.off('mouse:down', mouseDownHandler);
         fabricCanvas.off('mouse:move', mouseMoveHandler);
         fabricCanvas.off('mouse:up', mouseUpHandler);
-        enableTextLayer(); // Re-enable the text layer
 
+        //enableTextLayer();
     };
+
     // Attach event listeners
     fabricCanvas.on('mouse:down', mouseDownHandler);
     fabricCanvas.on('mouse:move', mouseMoveHandler);
     fabricCanvas.on('mouse:up', mouseUpHandler);
 }
+
+function updateStoredAnnotation(id, updates) {
+    for (let page in annotationsByPage) {
+        const annotation = annotationsByPage[page].find(ann => ann.id === id);
+        if (annotation) {
+            Object.assign(annotation, updates);
+
+            // Synchronize content if text is updated
+            if (updates.text) {
+                annotation.content = updates.text;
+            }
+
+            console.log("Updated Annotation:", annotation);
+            break;
+        }
+    }
+}
+
+
+        
+
 function addFreeDraw() {
     disableTextLayer(); // Disable the text layer
             resetDrawingState();
@@ -954,21 +1095,7 @@ function addFreeDraw() {
             });
              
         }
-function addText() {
-    disableTextLayer(); // Disable the text layer
-    resetDrawingState();
-    const text = new fabric.Textbox('Enter Text', {
-        left: 50,
-        top: 50,
-        fontSize: 20,
-        fill: 'black',
-    });
-    fabricCanvas.add(text);
-    text.set({ editable: true });
-    storeAnnotation('text', text);
-    //enableTextLayer(); // Re-enable the text layer
 
-}
 document.getElementById('toggle-free-draw').addEventListener('click', enableFreeDraw);
 // Update and store annotations for all object types
 fabricCanvas.on('object:modified', function (e) {

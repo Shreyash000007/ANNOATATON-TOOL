@@ -32,6 +32,7 @@ def validate_and_normalize_color(color):
 def save_pdf():
     data = request.get_json()
     pdf_data = base64.b64decode(data['pdf'])  # Original PDF data
+    print(f"PDF data length: {len(pdf_data)}")
 
     # Decode annotation data
     annotations = data.get('annotations', [])  # Expecting annotation details from frontend
@@ -56,7 +57,7 @@ def save_pdf():
             else:
                 print(f"Missing coordinates for text annotation: {annotation}")
 
-        if annotation["type"] == "line":
+        elif annotation["type"] == "line":
             if all(key in annotation for key in ["x1", "y1", "x2", "y2"]):
                 start = fitz.Point(annotation["x1"], annotation["y1"])
                 end = fitz.Point(annotation["x2"], annotation["y2"])
@@ -101,7 +102,6 @@ def save_pdf():
         
                 # Adjust to visually represent strike-out
                 strikeout_annot.set_colors(stroke=(0, 0, 0))  # Set black color for line
-                strikeout_annot.set_border(width=annotation.get("strokeWidth", 1))
                 strikeout_annot.set_info(
                     title=annotation.get("title", "Strike-out"),
                     subject=annotation.get("subject", "Strike-out Annotation"),
@@ -133,14 +133,20 @@ def save_pdf():
 
         elif annotation["type"] == "circle":
             if all(key in annotation for key in ["x1", "y1", "radius"]):
-                # Add circle annotation
-                rect = fitz.Rect(annotation["x1"], annotation["y1"], annotation["x1"] + annotation["radius"] * 2, annotation["y1"] + annotation["radius"] * 2)
-                circle_annot = page.add_circle_annot(rect)
-                circle_annot.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
-                circle_annot.update()
+                radius = annotation["radius"]
+                if radius > 0:
+                    rect = fitz.Rect(annotation["x1"], annotation["y1"], annotation["x1"] + radius * 2, annotation["y1"] + radius * 2)
+                    circle_annot = page.add_circle_annot(rect)
+                    circle_annot.set_info(
+                        title=annotation.get("title", ""),
+                        subject=annotation.get("subject", ""),
+                        content=annotation.get("content", "")
+                    )
+                    circle_annot.update()
+                else:
+                    print(f"Invalid radius for circle annotation: {annotation}")
             else:
-                print(f"Missing coordinates or radius for circle annotation: {annotation}")
-
+                print(f"Missing data for circle annotation: {annotation}")
         elif annotation["type"] == "cloud":
             if "path" in annotation:
                 # Parse the path data for the cloud
