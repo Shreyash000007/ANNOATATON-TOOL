@@ -20,6 +20,7 @@
             flex-direction: column;
             align-items: center;
         }
+
         #controls {
             display: flex;
             gap: 12px;
@@ -33,6 +34,7 @@
             border-radius: 12px;
             z-index: 10;
         }
+
         #controls button,
         #controls input {
             padding: 12px 20px;
@@ -46,26 +48,31 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
         }
+
         #controls button:hover,
         #controls input:hover {
             background-color: #00bcd4;
             /* Highlight on hover with teal */
             color: white;
         }
+
         #controls button:active,
         #controls input:active {
             transform: scale(0.98);
             box-shadow: none;
         }
+
         #controls input[type="file"] {
             background-color: #f1f1f1;
             padding: 8px;
         }
+
         button:focus {
             outline: none;
             box-shadow: 0 0 0 3px #00bcd4;
             /* Focus effect with teal */
         }
+
         /* Page Navigation Buttons */
         button.prev-next {
             background-color: #00796b;
@@ -74,10 +81,12 @@
             font-weight: bold;
             border-radius: 8px;
         }
+
         button.prev-next:hover {
             background-color: #004d40;
             /* Darker teal on hover */
         }
+
         /* PDF Container Styling */
         #pdf-container {
             position: relative;
@@ -91,6 +100,7 @@
             /* Teal border for the PDF container */
             padding: 12px;
         }
+
         /* PDF Canvas and Fabric Canvas Styling */
         #pdf-canvas,
         #fabric-canvas {
@@ -100,6 +110,7 @@
             border-radius: 8px;
             box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
         }
+
         /* Page Number Display */
         #page-num,
         #page-count {
@@ -117,6 +128,7 @@
             /* Light yellow background */
             box-shadow: 0 0 10px rgba(255, 235, 59, 0.3);
         }
+
         .fabric-circle {
             border: 3px solid #f44336;
             /* Red for circles */
@@ -124,12 +136,14 @@
             /* Light red background */
             box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
         }
+
         .fabric-line {
             stroke: #4caf50;
             /* Green for lines */
             stroke-width: 2;
             box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
         }
+
         .fabric-textbox {
             color: #1976d2;
             /* Blue text color */
@@ -137,19 +151,23 @@
             font-weight: bold;
             box-shadow: 0 0 5px rgba(25, 118, 210, 0.4);
         }
+
         /* Scroll Bar Styling */
         ::-webkit-scrollbar {
             width: 10px;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #4caf50;
             /* Green thumb */
             border-radius: 10px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #388e3c;
             /* Darker green on hover */
         }
+
         /* Styling for undo/redo buttons */
         .undo-redo-buttons {
             background-color: #ff9800;
@@ -158,51 +176,63 @@
             padding: 8px 16px;
             border-radius: 8px;
         }
+
         .undo-redo-buttons:hover {
             background-color: #fb8c00;
         }
+
         .undo-redo-buttons:active {
             transform: scale(0.98);
         }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
             }
+
             #controls {
                 flex-direction: column;
                 gap: 15px;
             }
+
             #pdf-container {
                 width: 100%;
                 margin-top: 20px;
             }
+
             canvas {
                 width: 100%;
             }
+
             button,
             input {
                 font-size: 14px;
                 padding: 8px 14px;
             }
+
             .fabric-rect,
             .fabric-circle,
             .fabric-line,
             .fabric-textbox {
                 font-size: 14px;
             }
+
             #pdf-container {
                 box-shadow: none;
                 border-radius: 0;
             }
         }
+
         /* Final Touches */
         #pdf-container canvas {
             transition: all 0.3s ease-in-out;
         }
+
         #pdf-container canvas:hover {
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
+        
         /* Text Layer Styling */
         #text-layer {
             position: absolute;
@@ -216,6 +246,7 @@
             background: rgba(255, 255, 255, 0.01);
             /* Slightly visible or transparent background to ensure it's a layer */
         }
+
         #text-layer span {
             pointer-events: all;
             /* Allow text selection if needed */
@@ -227,35 +258,39 @@
             /* Ensure no additional rendering issues */
             transform-origin: 0 0;
         }
+
         .text-annotation {
             pointer-events: none;
             /* Prevent interference with text selection */
             z-index: 1000;
             /* Ensure annotations are above the text layer */
         }
-        #thumbnail-container {
-    width: 150px;
-    overflow-y: auto;
-    background-color: #f0f0f0;
-    padding: 10px;
-    border-right: 2px solid #00bcd4;
-    height: 100vh;
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: 100;
-}
-#thumbnails canvas {
-    margin-bottom: 10px;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-#thumbnails canvas:hover {
-    border: 2px solid #00bcd4;
-}
 
+        #thumbnail-container {
+            width: 150px;
+            overflow-y: auto;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-right: 2px solid #00bcd4;
+            height: 100vh;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 100;
+        }
+
+        #thumbnails canvas {
+            margin-bottom: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #thumbnails canvas:hover {
+            border: 2px solid #00bcd4;
+        }
     </style>
 </head>
+
 <body>
     <div id="controls">
         <input type="file" id="file-input" accept="application/pdf">
@@ -264,9 +299,21 @@
         <button onclick="addLine()">Line</button>
         <button onclick="addCircle()">Circle</button>
         <button onclick="addFreeDraw()">Free Draw</button>
+        <button onclick="zoomIn()">+</button>
+        <button onclick="zoomOut()">-</button>
+        <select id="stampSelect">
+            <option value="approve">Approve</option>
+            <option value="notApprove">Not Approve</option>
+            <option value="right">Right</option>
+            <option value="wrong">Wrong</option>
+        </select>
+        <button onclick="addSelectedStamp()">Add Stamp</button>
         <button id="highlight">Highlight</button>
         <button id="underline">Underline</button>
         <button id="strikeout">Strike-out</button>
+        <button onclick="fitToWidth()">Fit to Width</button>
+<button onclick="fitToHeight()">Fit to Height</button>
+<button onclick="toggleFullScreen()">Full Screen</button>
         <button onclick="addCloudAnnotation()">Cloud Annotation</button>
         <button onclick="addText()">Text</button>
         <button onclick="undo()">Undo</button>
@@ -287,9 +334,6 @@
         <canvas id="fabric-canvas"></canvas>
         <div id="text-layer" style="position: absolute; top: 0; left: 0;"></div>
     </div>
-    <div id="pdf-container">
-        <canvas id="pdf-canvas"></canvas>
-    </div>
     <script>
         let pdfDoc = null;
         let pageNum = 1;
@@ -309,9 +353,78 @@
         const textLayerAdjustments = {}; // Store adjustments for each page { pageNum: { x: 0, y: 0 } }
         const thumbnailsContainer = document.getElementById("thumbnails");
         const thumbnailContainer = document.getElementById("thumbnail-container");
+        let currentScale = 1; // Keep track of current zoom level
+        let currentPageNum = 1; // Initialize with the first page or whatever page is being rendered initially
 
-         // Function to toggle the thumbnail panel
-         function toggleThumbnails() {
+        // Function to fit the PDF to the container width
+function fitToWidth() {
+    const containerWidth = document.getElementById('pdf-container').offsetWidth; // Get the container width
+    const pageWidth = pdfCanvas.width; // Get the PDF page width
+    const scaleFactor = containerWidth / pageWidth; // Calculate the scale to fit the width
+    setScale(scaleFactor);
+}
+
+// Function to fit the PDF to the container height
+function fitToHeight() {
+    const containerHeight = document.getElementById('pdf-container').offsetHeight; // Get the container height
+    const pageHeight = pdfCanvas.height; // Get the PDF page height
+    const scaleFactor = containerHeight / pageHeight; // Calculate the scale to fit the height
+    setScale(scaleFactor);
+}
+// Function to toggle full-screen mode
+function toggleFullScreen() {
+    const pdfContainer = document.getElementById('pdf-container');
+
+    // Check if the document is already in full-screen mode
+    if (!document.fullscreenElement) {
+        // If not, request full-screen
+        if (pdfContainer.requestFullscreen) {
+            pdfContainer.requestFullscreen();
+        } else if (pdfContainer.mozRequestFullScreen) { // Firefox
+            pdfContainer.mozRequestFullScreen();
+        } else if (pdfContainer.webkitRequestFullscreen) { // Chrome, Safari, and Opera
+            pdfContainer.webkitRequestFullscreen();
+        } else if (pdfContainer.msRequestFullscreen) { // IE/Edge
+            pdfContainer.msRequestFullscreen();
+        }
+    } else {
+        // If already in full-screen, exit full-screen mode
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) { // Firefox
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) { // Chrome, Safari, and Opera
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { // IE/Edge
+            document.msExitFullscreen();
+        }
+    }
+}
+// Function to apply the scale factor and re-render the page
+function setScale(scaleFactor) {
+    currentScale = scaleFactor;
+
+    // Calculate the new viewport for the page render
+    const viewport = pdfDoc.getPage(currentPageNum).then(page => {
+        const newViewport = page.getViewport({ scale: currentScale });
+        
+        renderPage(currentPageNum, newViewport); // Re-render the page with the new scale
+    });
+}
+
+        function zoomIn() {
+    currentScale *= 1.1; // Increase scale by 10%
+    renderPage(currentPageNum); // Re-render current page with the new scale
+}
+
+// Function to zoom out
+function zoomOut() {
+    currentScale /= 1.1; // Decrease scale by 10%
+    renderPage(currentPageNum); // Re-render current page with the new scale
+}
+
+        // Function to toggle the thumbnail panel
+        function toggleThumbnails() {
             thumbnailContainer.style.display =
                 thumbnailContainer.style.display === "none" ? "block" : "none";
         }
@@ -386,8 +499,8 @@
             fabricCanvas.off('mouse:move');
             fabricCanvas.off('mouse:up');
         }
-         // Load PDF file and generate thumbnails
-         document.getElementById("file-input").addEventListener("change", (event) => {
+        // Load PDF file and generate thumbnails
+        document.getElementById("file-input").addEventListener("change", (event) => {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -403,49 +516,50 @@
             }
         });
 
-        
-         // Generate thumbnails for all pages
-         function generateThumbnails() {
+
+        // Generate thumbnails for all pages
+        function generateThumbnails() {
             thumbnailsContainer.innerHTML = ""; // Clear existing thumbnails
-             // Array to store the rendering promises
-                const renderPromises = [];
-            
+            // Array to store the rendering promises
+            const renderPromises = [];
+
             for (let i = 1; i <= pdfDoc.numPages; i++) {
                 renderPromises.push(
-            pdfDoc.getPage(i).then((page) => {
-                const viewport = page.getViewport({ scale: 0.2 }); // Smaller scale for thumbnails
-                const thumbnailCanvas = document.createElement("canvas");
-                thumbnailCanvas.width = viewport.width;
-                thumbnailCanvas.height = viewport.height;
-                const context = thumbnailCanvas.getContext("2d");
-                const renderContext = {
-                    canvasContext: context,
-                    viewport: viewport,
-                };
+                    pdfDoc.getPage(i).then((page) => {
+                        const viewport = page.getViewport({ scale: 0.2 }); // Smaller scale for thumbnails
+                        const thumbnailCanvas = document.createElement("canvas");
+                        thumbnailCanvas.width = viewport.width;
+                        thumbnailCanvas.height = viewport.height;
+                        const context = thumbnailCanvas.getContext("2d");
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport,
+                        };
 
-                return page.render(renderContext).promise.then(() => {
-                    // Add click event to navigate to the corresponding page
-                    thumbnailCanvas.addEventListener("click", () => {
-                        pageNum = i;
-                        renderPage(pageNum);
-                    });
+                        return page.render(renderContext).promise.then(() => {
+                            // Add click event to navigate to the corresponding page
+                            thumbnailCanvas.addEventListener("click", () => {
+                                pageNum = i;
+                                renderPage(pageNum);
+                            });
 
-                    return thumbnailCanvas;
+                            return thumbnailCanvas;
+                        });
+                    })
+                );
+            }
+
+            // Render thumbnails in order after all rendering is complete
+            Promise.all(renderPromises).then((thumbnails) => {
+                thumbnails.forEach((thumbnailCanvas) => {
+                    thumbnailsContainer.appendChild(thumbnailCanvas);
                 });
-            })
-        );
-    }
-
-    // Render thumbnails in order after all rendering is complete
-    Promise.all(renderPromises).then((thumbnails) => {
-        thumbnails.forEach((thumbnailCanvas) => {
-            thumbnailsContainer.appendChild(thumbnailCanvas);
-        });
-    });
-}
+            });
+        }
         function renderPage(num) {
+            currentPageNum = num; // Set the current page number
             pdfDoc.getPage(num).then(page => {
-                const viewport = page.getViewport({ scale: 1 });
+                const viewport = page.getViewport({ scale: currentScale });
                 pdfCanvas.width = viewport.width;
                 pdfCanvas.height = viewport.height;
                 fabricCanvasElement.width = viewport.width;
@@ -460,7 +574,7 @@
                     fabricCanvas.clear(); // Clear existing annotations for the new page
                     fabricCanvas.setWidth(viewport.width);
                     fabricCanvas.setHeight(viewport.height);
-                    fabricCanvas.setZoom(viewport.scale); // Scale Fabric.js canvas objects to match PDF scale
+                    fabricCanvas.setZoom(currentScale); // Apply new zoom level to Fabric.js canvas
                     renderTextLayer(page, viewport);
                     logAnnotations(num);
                     renderAnnotations(num);
@@ -473,28 +587,28 @@
                     if (annotationsByPage[num]) {
                         annotationsByPage[num].forEach(annotation => {
                             let obj;
-                            const scaleProperties = property => property * scaleFactor;
+                            const scaleProperties = property => property * currentScale;
                             if (annotation.type === 'highlight' || annotation.type === 'underline' || annotation.type === 'strikeout') {
-                        const annotationDiv = document.createElement('div');
-                        annotationDiv.style.position = 'absolute';
-                        annotationDiv.style.left = `${annotation.coordinates.left}px`;
-                        annotationDiv.style.top = `${annotation.coordinates.top}px`;
-                        annotationDiv.style.width = `${annotation.coordinates.width}px`;
-                        annotationDiv.style.height = `${annotation.coordinates.height}px`;
+                                const annotationDiv = document.createElement('div');
+                                annotationDiv.style.position = 'absolute';
+                                annotationDiv.style.left = `${annotation.coordinates.left}px`;
+                                annotationDiv.style.top = `${annotation.coordinates.top}px`;
+                                annotationDiv.style.width = `${annotation.coordinates.width}px`;
+                                annotationDiv.style.height = `${annotation.coordinates.height}px`;
 
-                        if (annotation.type === 'highlight') {
-                            annotationDiv.style.backgroundColor = 'yellow';
-                            annotationDiv.style.opacity = '0.5';
-                        } else if (annotation.type === 'underline') {
-                            annotationDiv.style.borderBottom = '2px solid red';
-                        } else if (annotation.type === 'strikeout') {
-                            annotationDiv.style.borderTop = '2px solid black';
-                            annotationDiv.style.transform = `translateY(${annotation.coordinates.height / 2}px)`;
-                        }
+                                if (annotation.type === 'highlight') {
+                                    annotationDiv.style.backgroundColor = 'yellow';
+                                    annotationDiv.style.opacity = '0.5';
+                                } else if (annotation.type === 'underline') {
+                                    annotationDiv.style.borderBottom = '2px solid red';
+                                } else if (annotation.type === 'strikeout') {
+                                    annotationDiv.style.borderTop = '2px solid black';
+                                    annotationDiv.style.transform = `translateY(${annotation.coordinates.height / 2}px)`;
+                                }
 
-                        annotationDiv.classList.add('text-annotation');
-                        textLayer.appendChild(annotationDiv);
-                    }else if (annotation.type === 'square') {
+                                annotationDiv.classList.add('text-annotation');
+                                textLayer.appendChild(annotationDiv);
+                            } else if (annotation.type === 'square') {
                                 obj = new fabric.Rect({
                                     left: annotation.x1 * scaleFactor,
                                     top: annotation.y1 * scaleFactor,
@@ -506,28 +620,28 @@
                                 });
                             }
                             else if (annotation.type === 'line') {
-        obj = new fabric.Line(
-            [
-                scaleProperties(annotation.x1),
-                scaleProperties(annotation.y1),
-                scaleProperties(annotation.x2),
-                scaleProperties(annotation.y2),
-            ],
-            {
-                stroke: annotation.stroke || 'red',
-                strokeWidth: (annotation.strokeWidth || 2) * scaleFactor,
-            }
-        );
+                                obj = new fabric.Line(
+                                    [
+                                        scaleProperties(annotation.x1),
+                                        scaleProperties(annotation.y1),
+                                        scaleProperties(annotation.x2),
+                                        scaleProperties(annotation.y2),
+                                    ],
+                                    {
+                                        stroke: annotation.stroke || 'red',
+                                        strokeWidth: (annotation.strokeWidth || 2) * scaleFactor,
+                                    }
+                                );
                             } else if (annotation.type === 'circle') {
-    obj = new fabric.Circle({
-        left: annotation.x1 * scaleFactor,
-        top: annotation.y1 * scaleFactor,
-                radius: annotation.radius * scaleFactor,
-        fill: annotation.fill || 'transparent',
-        stroke: annotation.stroke || 'red',
-        strokeWidth: (annotation.strokeWidth || 2) * scaleFactor,
-    });
-} else if (annotation.type === 'text') {
+                                obj = new fabric.Circle({
+                                    left: annotation.x1 * scaleFactor,
+                                    top: annotation.y1 * scaleFactor,
+                                    radius: annotation.radius * scaleFactor,
+                                    fill: annotation.fill || 'transparent',
+                                    stroke: annotation.stroke || 'red',
+                                    strokeWidth: (annotation.strokeWidth || 2) * scaleFactor,
+                                });
+                            } else if (annotation.type === 'text') {
                                 // Ensure proper scaling of the position and font size
                                 obj = new fabric.Textbox(annotation.content || 'Enter Text', {
                                     left: annotation.x1 * scaleFactor,
@@ -549,7 +663,20 @@
                                     stroke: annotation.stroke || 'blue',
                                     strokeWidth: (annotation.strokeWidth || 2) * scaleFactor,
                                 });
+                            } else if (annotation.type === 'stamp') {
+                                fabric.Image.fromURL(annotation.imgSrc, function (img) {
+                                    img.set({
+                                        left: annotation.x1 * scaleFactor,
+                                        top: annotation.y1 * scaleFactor,
+                                        originX: 'center',
+                                        originY: 'center',
+                                        selectable: false,
+                                        evented: false
+                                    });
+                                    fabricCanvas.add(img);
+                                });
                             }
+
                             if (obj) {
                                 obj.id = annotation.id; // Reassign the id
                                 fabricCanvas.add(obj);
@@ -559,8 +686,8 @@
                 });
                 document.getElementById('page-num').textContent = num;
                 console.log("Viewport Scale:", viewport.scale);
-console.log("PDF Canvas:", pdfCanvas.width, pdfCanvas.height);
-console.log("Fabric Canvas:", fabricCanvas.width, fabricCanvas.height);
+                console.log("PDF Canvas:", pdfCanvas.width, pdfCanvas.height);
+                console.log("Fabric Canvas:", fabricCanvas.width, fabricCanvas.height);
 
             });
         }
@@ -576,25 +703,34 @@ console.log("Fabric Canvas:", fabricCanvas.width, fabricCanvas.height);
         }
 
         function onPageVisible(page, pageNum) {
-    const viewport = page.getViewport({ scale: 1 });
-    renderTextLayer(page, viewport, pageNum);
-    renderAnnotations(pageNum); // Ensure annotations are rendered
-}
+            const viewport = page.getViewport({ scale: 1 });
+            renderTextLayer(page, viewport, pageNum);
+            renderAnnotations(pageNum); // Ensure annotations are rendered
+        }
 
 
 
-        function renderTextLayer(page, viewport, pageNum) {
+        function renderTextLayer(page, viewport) {
             const textLayerDiv = document.getElementById('text-layer');
             textLayerDiv.innerHTML = '';
 
             const scaleFactor = viewport.scale;
             const scaledWidth = viewport.width;
             const scaledHeight = viewport.height;
-            textLayerDiv.style.width = `${scaledWidth}px`;
-            textLayerDiv.style.height = `${scaledHeight}px`;
-            textLayerDiv.style.transform = `scale(${scaleFactor}) translate(0, 0)`;
 
-            page.getTextContent().then(textContent => {
+           // Set the width and height for the text layer
+    textLayerDiv.style.width = `${scaledWidth}px`;
+    textLayerDiv.style.height = `${scaledHeight}px`;
+
+     // Apply scale directly to the text layer container without using transform scale
+     textLayerDiv.style.transform = ''; // Clear any previous transform effects
+
+// Adjust left and top positioning of the text layer container
+// Ensure that it stays in the correct position (top-left corner)
+textLayerDiv.style.position = 'absolute';
+textLayerDiv.style.left = '0px';
+textLayerDiv.style.top = '0px';
+          page.getTextContent().then(textContent => {
                 pdfjsLib.renderTextLayer({
                     textContent: textContent,
                     container: textLayerDiv,
@@ -676,49 +812,49 @@ console.log("Fabric Canvas:", fabricCanvas.width, fabricCanvas.height);
             }
         });
 
-function logAnnotations(pageNum) {
-    const pageAnnotations = annotationsByPage[pageNum] || [];
-    console.log(`Annotations for Page ${pageNum}:`, pageAnnotations);
-}
-
-function renderAnnotations(pageNum) {
-    const pageAnnotations = annotationsByPage[pageNum] || [];
-    pageAnnotations.forEach(annotation => {
-        // Ensure the coordinates are valid
-        const { x1, y1, x2, y2 } = annotation;
-        if (x1 === undefined || y1 === undefined || x2 === undefined || y2 === undefined) {
-            console.warn('Missing or invalid coordinates for annotation:', annotation);
-            return;  // Skip rendering this annotation
+        function logAnnotations(pageNum) {
+            const pageAnnotations = annotationsByPage[pageNum] || [];
+            console.log(`Annotations for Page ${pageNum}:`, pageAnnotations);
         }
 
-        // Convert to left, top, width, height
-        const left = x1;
-        const top = y1;
-        const width = x2 - x1;
-        const height = y2 - y1;
+        function renderAnnotations(pageNum) {
+            const pageAnnotations = annotationsByPage[pageNum] || [];
+            pageAnnotations.forEach(annotation => {
+                // Ensure the coordinates are valid
+                const { x1, y1, x2, y2 } = annotation;
+                if (x1 === undefined || y1 === undefined || x2 === undefined || y2 === undefined) {
+                    console.warn('Missing or invalid coordinates for annotation:', annotation);
+                    return;  // Skip rendering this annotation
+                }
 
-        const annotationDiv = document.createElement('div');
-        annotationDiv.style.position = 'absolute';
-        annotationDiv.style.left = `${left}px`;
-        annotationDiv.style.top = `${top}px`;
-        annotationDiv.style.width = `${width}px`;
-        annotationDiv.style.height = `${height}px`;
+                // Convert to left, top, width, height
+                const left = x1;
+                const top = y1;
+                const width = x2 - x1;
+                const height = y2 - y1;
 
-        // Handle annotation types (highlight, underline, strikeout)
-        if (annotation.type === 'highlight') {
-            annotationDiv.style.backgroundColor = 'yellow';
-            annotationDiv.style.opacity = '0.5';
-        } else if (annotation.type === 'underline') {
-            annotationDiv.style.borderBottom = '2px solid red';
-        } else if (annotation.type === 'strikeout') {
-            annotationDiv.style.borderTop = '2px solid black';
-            annotationDiv.style.transform = `translateY(${height / 2}px)`;
+                const annotationDiv = document.createElement('div');
+                annotationDiv.style.position = 'absolute';
+                annotationDiv.style.left = `${left}px`;
+                annotationDiv.style.top = `${top}px`;
+                annotationDiv.style.width = `${width}px`;
+                annotationDiv.style.height = `${height}px`;
+
+                // Handle annotation types (highlight, underline, strikeout)
+                if (annotation.type === 'highlight') {
+                    annotationDiv.style.backgroundColor = 'yellow';
+                    annotationDiv.style.opacity = '0.5';
+                } else if (annotation.type === 'underline') {
+                    annotationDiv.style.borderBottom = '2px solid red';
+                } else if (annotation.type === 'strikeout') {
+                    annotationDiv.style.borderTop = '2px solid black';
+                    annotationDiv.style.transform = `translateY(${height / 2}px)`;
+                }
+
+                annotationDiv.classList.add('text-annotation');
+                document.getElementById('text-layer').appendChild(annotationDiv);
+            });
         }
-
-        annotationDiv.classList.add('text-annotation');
-        document.getElementById('text-layer').appendChild(annotationDiv);
-    });
-}
         // Modified addTextAnnotation function
         function addTextAnnotation(type) {
             const selection = window.getSelection();
@@ -732,11 +868,11 @@ function renderAnnotations(pageNum) {
             const textLayerDiv = document.getElementById('text-layer');
 
             Array.from(rects).forEach(rect => {
-        // Validate rect values
-        if (!rect.left || !rect.top || !rect.width || !rect.height) {
-            console.warn('Invalid coordinates:', rect);
-            return; // Skip invalid rects
-        }
+                // Validate rect values
+                if (!rect.left || !rect.top || !rect.width || !rect.height) {
+                    console.warn('Invalid coordinates:', rect);
+                    return; // Skip invalid rects
+                }
                 const annotationDiv = document.createElement('div');
                 annotationDiv.style.position = 'absolute';
                 annotationDiv.style.left = `${rect.left - textLayerDiv.getBoundingClientRect().left}px`;
@@ -773,50 +909,50 @@ function renderAnnotations(pageNum) {
         }
 
         function saveAnnotationsToLocalStorage() {
-    localStorage.setItem('annotationsByPage', JSON.stringify(annotationsByPage));
-}
-
-function loadAnnotationsFromLocalStorage() {
-    const storedAnnotations = localStorage.getItem('annotationsByPage');
-    if (storedAnnotations) {
-        annotationsByPage = JSON.parse(storedAnnotations);
-    }
-}
-loadAnnotationsFromLocalStorage();
-
-
-function storeAnnotation(type, coordinates, pageNum) {
-    if (!annotationsByPage[pageNum]) {
-        annotationsByPage[pageNum] = [];
-    }
-
-    const annotation = {
-        id: `${Date.now()}${Math.random().toString(36).substr(2, 5)}`,
-        type: type,
-        coordinates: {
-            left: coordinates.x1,
-            top: coordinates.y1,
-            width: coordinates.x2 - coordinates.x1,
-            height: coordinates.y2 - coordinates.y1,
+            localStorage.setItem('annotationsByPage', JSON.stringify(annotationsByPage));
         }
-    };
 
-    annotationsByPage[pageNum].push(annotation);
-    console.log('Stored annotation:', annotation);
-    saveAnnotationsToLocalStorage(); // Save after every update
-}
+        function loadAnnotationsFromLocalStorage() {
+            const storedAnnotations = localStorage.getItem('annotationsByPage');
+            if (storedAnnotations) {
+                annotationsByPage = JSON.parse(storedAnnotations);
+            }
+        }
+        loadAnnotationsFromLocalStorage();
+
+
+        function storeAnnotation(type, coordinates, pageNum) {
+            if (!annotationsByPage[pageNum]) {
+                annotationsByPage[pageNum] = [];
+            }
+
+            const annotation = {
+                id: `${Date.now()}${Math.random().toString(36).substr(2, 5)}`,
+                type: type,
+                coordinates: {
+                    left: coordinates.x1,
+                    top: coordinates.y1,
+                    width: coordinates.x2 - coordinates.x1,
+                    height: coordinates.y2 - coordinates.y1,
+                }
+            };
+
+            annotationsByPage[pageNum].push(annotation);
+            console.log('Stored annotation:', annotation);
+            saveAnnotationsToLocalStorage(); // Save after every update
+        }
 
 
 
-function getRelativeCoordinates(rect, container) {
-    const containerRect = container.getBoundingClientRect();
-    return {
-        left: rect.left - containerRect.left,
-        top: rect.top - containerRect.top,
-        width: rect.width,
-        height: rect.height,
-    };
-}
+        function getRelativeCoordinates(rect, container) {
+            const containerRect = container.getBoundingClientRect();
+            return {
+                left: rect.left - containerRect.left,
+                top: rect.top - containerRect.top,
+                width: rect.width,
+                height: rect.height,
+            };
+        }
 
         // Function to get the scaling factor between the PDF page and canvas
         function getScaleFactor() {
@@ -825,6 +961,7 @@ function getRelativeCoordinates(rect, container) {
                 y: pdfCanvas.height / fabricCanvas.getHeight(),
             };
         }
+
         function prevPage() {
             if (pageNum <= 1) return;
             pageNum--;
@@ -835,7 +972,7 @@ function getRelativeCoordinates(rect, container) {
             pageNum++;
             renderPage(pageNum);
         }
-        
+
         // Function to store annotations with scaling applied based on the current page's viewport
         function storeAnnotation(type, obj) {
             const scaleFactor = getScaleFactor();
@@ -926,11 +1063,99 @@ function getRelativeCoordinates(rect, container) {
                 annotation.stroke = "black";
                 annotation.strokeWidth = 2;
                 annotation.translateY = obj.height / 2;
+            } else if (type === "stamp") {
+                annotation.title = "Stamp Title";
+                annotation.subject = "Stamp Subject";
+                annotation.content = "This is a stamp annotation.";
+                annotation.imgSrc = obj.imgSrc; // Ensure the stamp image URL is stored
+                annotation.width = obj.width;
+                annotation.height = obj.height;
+                annotation.fill = obj.fill;
             }
+
 
             annotationsByPage[pageNum].push(annotation);
             console.log("Stored Annotation:", annotation);
         }
+
+        function addStamp(stampType) {
+            disableTextLayer(); // Disable the text layer
+            resetDrawingState();
+            isDrawing = true;
+            fabricCanvas.isDrawingMode = false; // Disable free drawing mode
+            fabricCanvas.selection = false;    // Disable object selection
+
+            let isStampPlaced = false; // Ensure only one stamp is placed per action
+
+            // Define the stamp images (use forward slashes or full URLs)
+            const stamps = {
+                approve: '/images/Approved.png', // Use relative path
+                notApprove: '/images/NotApproved.png',
+                right: '/images/Right.png',
+                wrong: '/images/Wrong.png'
+            };
+
+            // Check if the stamp type is valid
+            const selectedStamp = stamps[stampType];
+            if (!selectedStamp) {
+                console.error("Invalid stamp type selected!");
+                isDrawing = false;
+                enableTextLayer();
+                return;
+            }
+
+            // Change the cursor to the selected stamp image
+            fabricCanvas.defaultCursor = `url(${selectedStamp}) 16 16, auto`; // Adjust '16 16' to center the cursor
+
+            // Define a single-use event listener for placing the stamp
+            const onMouseDown = function (e) {
+                if (isStampPlaced) return; // Avoid placing multiple stamps
+
+                const pointer = fabricCanvas.getPointer(e.e); // Get pointer coordinates
+                const startX = pointer.x;
+                const startY = pointer.y;
+
+                // Create the stamp as an image
+                fabric.Image.fromURL(selectedStamp, function (img) {
+                    // Set a scale factor for smaller stamps (0.2 means 20% of the original size)
+                    const scaleFactor = 0.7; // Adjust this to control the size
+
+                    // Scale the image
+                    img.scale(scaleFactor);
+
+                    // Adjust position to center the image at the click point
+                    img.set({
+                        left: startX - img.width * scaleFactor / 2, // Center horizontally
+                        top: startY - img.height * scaleFactor / 2, // Center vertically
+                        originX: 'center',
+                        originY: 'center',
+                        selectable: false, // Disable selection
+                        evented: false     // Disable events for this stamp
+                    });
+
+                    fabricCanvas.add(img);
+                    fabricCanvas.renderAll();
+                });
+
+                // Mark stamp as placed, restore cursor, and clean up
+                isStampPlaced = true;
+                isDrawing = false;
+                fabricCanvas.defaultCursor = 'default'; // Reset cursor to default
+                fabricCanvas.off('mouse:down', onMouseDown); // Remove listener
+                enableTextLayer();
+            };
+
+            // Add the event listener for mouse down
+            fabricCanvas.on('mouse:down', onMouseDown);
+        }
+
+        function addSelectedStamp() {
+            const stampType = document.getElementById('stampSelect').value;
+            addStamp(stampType);
+        }
+
+
+
 
         function addCloudAnnotation() {
             disableTextLayer(); // Disable the text layer
@@ -1125,7 +1350,7 @@ function getRelativeCoordinates(rect, container) {
             fabricCanvas.on('mouse:move', mouseMoveHandler);
             fabricCanvas.on('mouse:up', mouseUpHandler);
         }
-        
+
         function addCircle() {
             disableTextLayer(); // Disable the text layer
             resetDrawingState(); // Reset any active drawing state
@@ -1452,6 +1677,19 @@ function getRelativeCoordinates(rect, container) {
                             title: "Cloud Annotation",
                             subject: "Cloud Subject",
                             content: "This is a cloud annotation.",
+                        });
+                    } else if (obj.annotationType === 'stamp') {
+                        annotations.push({
+                            type: 'stamp',
+                            page: pageNum,
+                            x1: obj.left,
+                            y1: obj.top,
+                            imgSrc: obj.imgSrc, // Assuming stamp image source
+                            width: obj.width,
+                            height: obj.height,
+                            title: "Stamp",
+                            subject: "Stamp Subject",
+                            content: "This is a stamp annotation.",
                         });
                     } else {
                         annotations.push({

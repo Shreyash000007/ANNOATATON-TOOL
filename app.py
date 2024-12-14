@@ -1,13 +1,18 @@
 import base64
 import io
 import fitz  # PyMuPDF
-from flask import Flask, request, jsonify, render_template, send_file
+from flask import Flask, request, jsonify, render_template, send_file, send_from_directory
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/images/<filename>')
+def serve_image(filename):
+    image_directory = 'C:/PDF/images'  # Path to your image directory
+    return send_from_directory(image_directory, filename)
 
 def validate_and_normalize_color(color):
     try:
@@ -48,6 +53,7 @@ def save_pdf():
                         start = fitz.Point(annotation["x1"], annotation["y1"])
                         end = fitz.Point(annotation["x2"], annotation["y2"])
                         page.draw_line(start, end, color=(1, 0, 0), width=annotation.get("strokeWidth", 1))
+                        
                     else:
                         print(f"Missing coordinates for line annotation: {annotation}")
 
