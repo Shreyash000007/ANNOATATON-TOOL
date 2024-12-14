@@ -233,11 +233,33 @@
             z-index: 1000;
             /* Ensure annotations are above the text layer */
         }
+        #thumbnail-container {
+    width: 150px;
+    overflow-y: auto;
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-right: 2px solid #00bcd4;
+    height: 100vh;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 100;
+}
+#thumbnails canvas {
+    margin-bottom: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+#thumbnails canvas:hover {
+    border: 2px solid #00bcd4;
+}
+
     </style>
 </head>
 <body>
     <div id="controls">
         <input type="file" id="file-input" accept="application/pdf">
+        <button onclick="toggleThumbnails()">☰ Thumbnails</button>
         <button onclick="addSquare()">Square</button>
         <button onclick="addLine()">Line</button>
         <button onclick="addCircle()">Circle</button>
@@ -250,6 +272,9 @@
         <button onclick="undo()">Undo</button>
         <button onclick="redo()">Redo</button>
         <button onclick="save()">Save PDF</button>
+    </div>
+    <div id="thumbnail-container" style="display: none;">
+        <div id="thumbnails"></div>
     </div>
     <label>
         <input type="checkbox" id="toggle-selection"> Enable Annotation Selection
@@ -282,6 +307,14 @@
         // Enable free draw mode
         let isFreeDrawEnabled = false;
         const textLayerAdjustments = {}; // Store adjustments for each page { pageNum: { x: 0, y: 0 } }
+        const thumbnailsContainer = document.getElementById("thumbnails");
+        const thumbnailContainer = document.getElementById("thumbnail-container");
+
+         // Function to toggle the thumbnail panel
+         function toggleThumbnails() {
+            thumbnailContainer.style.display =
+                thumbnailContainer.style.display === "none" ? "block" : "none";
+        }
 
         function enableFreeDraw() {
             isFreeDrawEnabled = !isFreeDrawEnabled;
@@ -353,22 +386,63 @@
             fabricCanvas.off('mouse:move');
             fabricCanvas.off('mouse:up');
         }
-        document.getElementById('file-input').addEventListener('change', handleFile);
-        function handleFile(event) {
+         // Load PDF file and generate thumbnails
+         document.getElementById("file-input").addEventListener("change", (event) => {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
                     const pdfData = new Uint8Array(e.target.result);
-                    pdfjsLib.getDocument({ data: pdfData }).promise.then(pdf => {
+                    pdfjsLib.getDocument({ data: pdfData }).promise.then((pdf) => {
                         pdfDoc = pdf;
-                        renderPage(pageNum);
+                        generateThumbnails(); // Generate thumbnails for all pages
+                        renderPage(pageNum); // Render the first page
                     });
                 };
                 reader.readAsArrayBuffer(file);
             }
-        }
+        });
 
+        
+         // Generate thumbnails for all pages
+         function generateThumbnails() {
+            thumbnailsContainer.innerHTML = ""; // Clear existing thumbnails
+             // Array to store the rendering promises
+                const renderPromises = [];
+            
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                renderPromises.push(
+            pdfDoc.getPage(i).then((page) => {
+                const viewport = page.getViewport({ scale: 0.2 }); // Smaller scale for thumbnails
+                const thumbnailCanvas = document.createElement("canvas");
+                thumbnailCanvas.width = viewport.width;
+                thumbnailCanvas.height = viewport.height;
+                const context = thumbnailCanvas.getContext("2d");
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport,
+                };
+
+                return page.render(renderContext).promise.then(() => {
+                    // Add click event to navigate to the corresponding page
+                    thumbnailCanvas.addEventListener("click", () => {
+                        pageNum = i;
+                        renderPage(pageNum);
+                    });
+
+                    return thumbnailCanvas;
+                });
+            })
+        );
+    }
+
+    // Render thumbnails in order after all rendering is complete
+    Promise.all(renderPromises).then((thumbnails) => {
+        thumbnails.forEach((thumbnailCanvas) => {
+            thumbnailsContainer.appendChild(thumbnailCanvas);
+        });
+    });
+}
         function renderPage(num) {
             pdfDoc.getPage(num).then(page => {
                 const viewport = page.getViewport({ scale: 1 });
@@ -386,6 +460,7 @@
                     fabricCanvas.clear(); // Clear existing annotations for the new page
                     fabricCanvas.setWidth(viewport.width);
                     fabricCanvas.setHeight(viewport.height);
+                    fabricCanvas.setZoom(viewport.scale); // Scale Fabric.js canvas objects to match PDF scale
                     renderTextLayer(page, viewport);
                     logAnnotations(num);
                     renderAnnotations(num);
@@ -398,6 +473,7 @@
                     if (annotationsByPage[num]) {
                         annotationsByPage[num].forEach(annotation => {
                             let obj;
+                            const scaleProperties = property => property * scaleFactor;
                             if (annotation.type === 'highlight' || annotation.type === 'underline' || annotation.type === 'strikeout') {
                         const annotationDiv = document.createElement('div');
                         annotationDiv.style.position = 'absolute';
@@ -430,23 +506,23 @@
                                 });
                             }
                             else if (annotation.type === 'line') {
-                                obj = new fabric.Line(
-                                    [
-                                        annotation.x1 * scaleFactor,
-                                        annotation.y1 * scaleFactor,
-                                        annotation.x2 * scaleFactor,
-                                        annotation.y2 * scaleFactor,
-                                    ],
-                                    {
-                                        stroke: annotation.stroke || 'red',
-                                        strokeWidth: annotation.strokeWidth * scaleFactor || 2,
-                                    }
-                                );
+        obj = new fabric.Line(
+            [
+                scaleProperties(annotation.x1),
+                scaleProperties(annotation.y1),
+                scaleProperties(annotation.x2),
+                scaleProperties(annotation.y2),
+            ],
+            {
+                stroke: annotation.stroke || 'red',
+                strokeWidth: (annotation.strokeWidth || 2) * scaleFactor,
+            }
+        );
                             } else if (annotation.type === 'circle') {
     obj = new fabric.Circle({
         left: annotation.x1 * scaleFactor,
         top: annotation.y1 * scaleFactor,
-        radius: annotation.radius * scaleFactor,
+                radius: annotation.radius * scaleFactor,
         fill: annotation.fill || 'transparent',
         stroke: annotation.stroke || 'red',
         strokeWidth: (annotation.strokeWidth || 2) * scaleFactor,
@@ -482,6 +558,10 @@
                     }
                 });
                 document.getElementById('page-num').textContent = num;
+                console.log("Viewport Scale:", viewport.scale);
+console.log("PDF Canvas:", pdfCanvas.width, pdfCanvas.height);
+console.log("Fabric Canvas:", fabricCanvas.width, fabricCanvas.height);
+
             });
         }
 
@@ -755,6 +835,7 @@ function getRelativeCoordinates(rect, container) {
             pageNum++;
             renderPage(pageNum);
         }
+        
         // Function to store annotations with scaling applied based on the current page's viewport
         function storeAnnotation(type, obj) {
             const scaleFactor = getScaleFactor();
@@ -1208,9 +1289,7 @@ function getRelativeCoordinates(rect, container) {
                 const centerY = path.top + path.height / 2;
 
             });
-
         }
-
         document.getElementById('toggle-free-draw').addEventListener('click', enableFreeDraw);
         // Update and store annotations for all object types
         fabricCanvas.on('object:modified', function (e) {
