@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Transport | Dashboard</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+
+    <!-- DataTables -->
+    <link rel="stylesheet" href="assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="assets/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="assets/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="assets/plugins/fontawesome-free/css/all.min.css">
+    <!-- daterange picker -->
+    <link rel="stylesheet" href="assets/plugins/daterangepicker/daterangepicker.css">
+    <!-- iCheck for checkboxes and radio inputs -->
+    <link rel="stylesheet" href="assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+    <!-- Bootstrap Color Picker -->
+    <link rel="stylesheet" href="assets/plugins/bootstrap-colorpicker/css/bootstrap-colorpicker.min.css">
+    <!-- Tempusdominus Bootstrap 4 -->
+    <link rel="stylesheet" href="assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">
+    <!-- Select2 -->
+    <link rel="stylesheet" href="assets/plugins/select2/css/select2.min.css">
+    <link rel="stylesheet" href="assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+    <!-- Bootstrap4 Duallistbox -->
+    <link rel="stylesheet" href="assets/plugins/bootstrap4-duallistbox/bootstrap-duallistbox.min.css">
+    <!-- BS Stepper -->
+    <link rel="stylesheet" href="assets/plugins/bs-stepper/css/bs-stepper.min.css">
+    <!-- dropzonejs -->
+    <link rel="stylesheet" href="assets/plugins/dropzone/min/dropzone.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="assets/css/main.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.2.2/pdf.js"></script>
+
+    <style>
+        .modal.right.fade.in .modal-dialog {
+            right:0 !important;
+            transform: translateX(-50%);
+        }
+        .modal.right .modal-content {
+            height:100%;
+            overflow:auto;
+            border-radius:0;
+        }
+        .modal.right .modal-dialog {
+            position: fixed;
+            margin: auto;
+            height: 100%;
+            -webkit-transform: translate3d(0%, 0, 0);
+            -ms-transform: translate3d(0%, 0, 0);
+            -o-transform: translate3d(0%, 0, 0);
+            transform: translate3d(0%, 0, 0);
+        }
+        .modal.right.fade.in .modal-dialog {
+            transform: translateX(0%);
+        }
+        .modal.right.fade .modal-dialog {
+            right: 0px;
+            -webkit-transition: opacity 0.3s linear, right 0.3s ease-out;
+            -moz-transition: opacity 0.3s linear, right 0.3s ease-out;
+            -o-transition: opacity 0.3s linear, right 0.3s ease-out;
+            transition: opacity 0.3s linear, right 0.3s ease-out;
+        }
+
+        .btn-default {
+            background-color: rgb(233 236 239 / 46%);
+            border-color: #ddd;
+            color: #444;
+        }
+
+
+
+        /*.modal.right .modal-header {background-color: #2e667f; color:#fff}*/
+        .modal.right .modal-header::after {content:""; display:inline-block;}
+        .modal.right .close {text-shadow:none; opacity:1; color:#ff4d4d; font-size:26px}
+
+        #pages{
+            text-align: center;
+            height: 73vh;
+            overflow: auto;
+        }
+        .page{
+            width: 60%;
+            margin: 10px;
+            box-shadow: 0px 0px 5px #000;
+            animation: pageIn 1s ease;
+            transition: all 1s ease, width 0.2s ease;
+        }
+        @keyframes pageIn{
+            0%{
+                transform: translateX(-300px);
+                opacity: 0;
+            }
+            100%{
+                transform: translateX(0px);
+                opacity: 1;
+            }
+        }
+        #zoom-in{
+
+        }
+        #zoom-percent{
+            display: inline-block;
+        }
+        #zoom-percent::after{
+            content: "%";
+        }
+        #zoom-out{
+
+        }
+
+
+    </style>
+
+</head>
+<body class="hold-transition sidebar-collapse layout-footer-fixed">
+<div class="wrapper">
+
+
+
+    <!-- Navbar -->
+    <nav class="main-header navbar navbar-expand navbar-white navbar-light text-sm">
+        <!-- Left navbar links -->
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+            </li>
+            <li class="nav-item d-none d-sm-inline-block">
+                <a href="" class="nav-link">Home</a>
+            </li>
+
+        </ul>
+
+        <!-- Right navbar links -->
+        <ul class="navbar-nav ml-auto">
+            <!-- Navbar Search -->
+            <li class="nav-item">
+                <a class="nav-link" data-widget="navbar-search" href="#" role="button">
+                    <i class="fas fa-search"></i>
+                </a>
+                <div class="navbar-search-block">
+                    <form class="form-inline">
+                        <div class="input-group input-group-sm">
+                            <input class="form-control form-control-navbar" type="search" placeholder="Search" aria-label="Search">
+                            <div class="input-group-append">
+                                <button class="btn btn-navbar" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <button class="btn btn-navbar" type="button" data-widget="navbar-search">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </li>
+
+
+            <!-- Notifications Dropdown Menu -->
+            <li class="nav-item dropdown">
+                <a class="nav-link" data-toggle="dropdown" href="#">
+                    <i class="far fa-bell"></i>
+                    <span class="badge badge-warning navbar-badge">15</span>
+                </a>
+                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                    <span class="dropdown-item dropdown-header">15 Notifications</span>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-envelope mr-2"></i> 4 new messages
+                        <span class="float-right text-muted text-sm">3 mins</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-users mr-2"></i> 8 friend requests
+                        <span class="float-right text-muted text-sm">12 hours</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-file mr-2"></i> 3 new reports
+                        <span class="float-right text-muted text-sm">2 days</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item dropdown-footer">See All Notifications</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-widget="fullscreen" href="#" role="button">
+                    <i class="fas fa-expand-arrows-alt"></i>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-widget="control-sidebar" data-controlsidebar-slide="true" href="#" role="button">
+                    <i class="fas fa-th-large"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <!-- /.navbar -->
+
+    <!-- Main Sidebar Container -->
+    <aside class="main-sidebar elevation-4 sidebar-light-navy">
+        <!-- Brand Logo -->
+        <a href="" class="brand-link">
+            <img src="assets/img/logo.png" alt="Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
+            <span class="brand-text font-weight-light">PDF</span>
+        </a>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Sidebar user panel (optional) -->
+            <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                <div class="image">
+                    <img src="assets/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                </div>
+                <div class="info">
+                    <a href="#" class="d-block">Vaibhav Barsagade</a>
+                </div>
+            </div>
+
+
+
+            <!-- Sidebar Menu -->
+            <nav class="mt-2">
+                <ul class="nav nav-pills nav-sidebar flex-column nav-compact" data-widget="treeview" role="menu" data-accordion="false">
+                    <!-- Add icons to the links using the .nav-icon class
+                         with font-awesome or any other icon font library -->
+
+                    <li class="nav-item menu-open">
+                        <a href="#" class="nav-link active">
+                            <i class="nav-icon fas fa-tachometer-alt"></i>
+                            <p>
+                                Admin Menu
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="index.html" class="nav-link active">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Create Employee</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="starter.html" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>View Employee</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Follow Up Check</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-chart-pie"></i>
+                            <p>
+                                Road Services
+                                <i class="right fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>HighTea</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>SideHigh</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>Inline</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="" class="nav-link">
+                                    <i class="far fa-circle nav-icon"></i>
+                                    <p>uPlot</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                </ul>
+            </nav>
+            <!-- /.sidebar-menu -->
+        </div>
+        <!-- /.sidebar -->
+    </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+
+        <section class="content mt-2">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card" >
+
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <div class="custom-file">
+                                            <input type="file" id="pdf-upload" class="custom-file-input" accept="application/pdf" />
+                                            <label class="custom-file-label" for="customFile">Choose file</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-step-backward"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-step-forward"></i>
+                                            </button>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button id="zoom-out" type="button" class="btn btn-default">
+                                                <i class="fas fa-search-minus"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <div id="zoom-percent">60</div>
+                                            </button>
+                                            <button id="zoom-in" type="button" class="btn btn-default">
+                                                <i class="fas fa-search-plus"></i>
+                                            </button>
+                                            <button id="zoom-reset" type="button" class="btn btn-default">
+                                                <i class="fas fa-undo-alt"></i>
+                                            </button>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-default">
+                                                <i class="far fa-square"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-slash"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="far fa-circle"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-stamp"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-highlighter"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-underline"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-strikethrough"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-window-maximize"></i>
+                                            </button>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-cloud"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-text-width"></i>
+                                            </button>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-print"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-default">
+                                                <i class="fas fa-save"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <div class="card-body"></div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="card-body">
+                                            <div id="pages"></div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+    <!-- /.content-wrapper -->
+    <footer class="main-footer text-sm">
+        <strong>&copy; 2023 <a href="">PDF System</a>.</strong>
+        All rights reserved.
+        <div class="float-right d-none d-sm-inline-block">
+            <b>Version</b> 3.2.0
+        </div>
+    </footer>
+
+    <!-- Control Sidebar -->
+    <aside class="control-sidebar control-sidebar-dark">
+        <div class="p-3 control-sidebar-content">
+
+        </div>
+    </aside>
+    <!-- /.control-sidebar -->
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+<script src="assets/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="assets/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<script src="assets/plugins/bs-custom-file-input/bs-custom-file-input.min.js"></script>
+
+<!-- Select2 -->
+<script src="assets/plugins/select2/js/select2.full.min.js"></script>
+<!-- Bootstrap4 Duallistbox -->
+<script src="assets/plugins/bootstrap4-duallistbox/jquery.bootstrap-duallistbox.min.js"></script>
+<!-- InputMask -->
+<script src="assets/plugins/moment/moment.min.js"></script>
+<script src="assets/plugins/inputmask/jquery.inputmask.min.js"></script>
+<!-- date-range-picker -->
+<script src="assets/plugins/daterangepicker/daterangepicker.js"></script>
+<!-- bootstrap color picker -->
+<script src="assets/plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
+<!-- Bootstrap Switch -->
+<script src="assets/plugins/bootstrap-switch/js/bootstrap-switch.min.js"></script>
+<!-- BS-Stepper -->
+<script src="assets/plugins/bs-stepper/js/bs-stepper.min.js"></script>
+<!-- dropzonejs -->
+<script src="assets/plugins/dropzone/min/dropzone.min.js"></script>
+
+<!-- DataTables  & Plugins -->
+<script src="assets/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="assets/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="assets/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="assets/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="assets/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="assets/plugins/jszip/jszip.min.js"></script>
+<script src="assets/plugins/pdfmake/pdfmake.min.js"></script>
+<script src="assets/plugins/pdfmake/vfs_fonts.js"></script>
+<script src="assets/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="assets/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="assets/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+
+
+<!-- AdminLTE App -->
+<script src="assets/js/main.js"></script>
+<!-- AdminLTE for demo purposes -->
+<script src="assets/js/demo.js"></script>
+<!-- Page specific script -->
+
+<script src="PDFViewer.js"></script>
+
+<script>
+    $(function () {
+        //Initialize Select2 Elements
+        $('.select2').select2()
+
+        //Initialize Select2 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4'
+        })
+
+        //Datemask dd/mm/yyyy
+        $('#datemask').inputmask('dd/mm/yyyy', { 'placeholder': 'dd/mm/yyyy' })
+        //Datemask2 mm/dd/yyyy
+        $('#datemask2').inputmask('mm/dd/yyyy', { 'placeholder': 'mm/dd/yyyy' })
+        //Money Euro
+        $('[data-mask]').inputmask()
+
+        //Date picker
+        $('#reservationdate').datetimepicker({
+            format: 'L'
+        });
+
+        //Date and time picker
+        $('#reservationdatetime').datetimepicker({ icons: { time: 'far fa-clock' } });
+
+        //Date range picker
+        $('#reservation').daterangepicker()
+        //Date range picker with time picker
+        $('#reservationtime').daterangepicker({
+            timePicker: true,
+            timePickerIncrement: 30,
+            locale: {
+                format: 'MM/DD/YYYY hh:mm A'
+            }
+        })
+        //Date range as a button
+        $('#daterange-btn').daterangepicker(
+            {
+                ranges   : {
+                    'Today'       : [moment(), moment()],
+                    'Yesterday'   : [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days' : [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month'  : [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month'  : [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                },
+                startDate: moment().subtract(29, 'days'),
+                endDate  : moment()
+            },
+            function (start, end) {
+                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'))
+            }
+        )
+
+        //Timepicker
+        $('#timepicker').datetimepicker({
+            format: 'LT'
+        })
+
+        //Bootstrap Duallistbox
+        $('.duallistbox').bootstrapDualListbox()
+
+        //Colorpicker
+        $('.my-colorpicker1').colorpicker()
+        //color picker with addon
+        $('.my-colorpicker2').colorpicker()
+
+        $('.my-colorpicker2').on('colorpickerChange', function(event) {
+            $('.my-colorpicker2 .fa-square').css('color', event.color.toString());
+        })
+
+        $("input[data-bootstrap-switch]").each(function(){
+            $(this).bootstrapSwitch('state', $(this).prop('checked'));
+        })
+
+    })
+
+
+
+</script>
+
+<script>
+    $(function () {
+        $("#example1").DataTable({
+            "responsive": true, "lengthChange": false, "autoWidth": false,
+            "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+        }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        $('#example2').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": false,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            dom:
+                "<'d-none row justify-content-center align-items-center'<'col-sm-3'f><'col-sm-2'l><'col-sm-7 pb-2 text-right'B>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row justify-content-center align-items-center'<'col-sm-6'i><'col-sm-6'p>>",
+        });
+    });
+</script>
+
+<script>
+    $(function () {
+        bsCustomFileInput.init();
+    });
+</script>
+
+</body>
+</html>
