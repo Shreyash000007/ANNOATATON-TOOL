@@ -14,6 +14,10 @@ def serve_image(filename):
     image_directory = 'C:/PDF/images'  # Path to your image directory
     return send_from_directory(image_directory, filename)
 
+@app.route('/assets/<path:path>')
+def send_assets(path):
+    return send_from_directory('assets',path)
+
 def validate_and_normalize_color(color):
     try:
         if isinstance(color, (list, tuple)) and len(color) == 3:
@@ -52,8 +56,23 @@ def save_pdf():
                     if all(key in annotation for key in ["x1", "y1", "x2", "y2"]):
                         start = fitz.Point(annotation["x1"], annotation["y1"])
                         end = fitz.Point(annotation["x2"], annotation["y2"])
-                        page.draw_line(start, end, color=(1, 0, 0), width=annotation.get("strokeWidth", 1))
-                        
+
+                        # Create a line annotation instead of just drawing the line
+                        line_annot = page.add_line_annot(start, end)
+
+                        # Set additional metadata for the annotation
+                        line_annot.set_info(
+                            title=annotation.get("title", ""),
+                            subject=annotation.get("subject", ""),
+                            content=annotation.get("content", "")
+                        )
+
+                       # Set line properties
+                        line_annot.set_colors(stroke=(1, 0, 0))  # Red color
+                        line_annot.set_border(width=annotation.get("strokeWidth", 1))
+
+                        # Finalize the annotation
+                        line_annot.update()
                     else:
                         print(f"Missing coordinates for line annotation: {annotation}")
 
@@ -133,7 +152,7 @@ def save_pdf():
                         print(f"Missing data for circle annotation: {annotation}")
 
                 elif annotation["type"] == "cloud":
-                    if "path" in annotation:
+                    if "path" in annotation and isinstance(annotation["path"], list):
                         cloud_path = annotation['path']
                         points = []
                         for command in cloud_path:
@@ -146,6 +165,13 @@ def save_pdf():
                                 points.append(fitz.Point(command[3], command[4]))
                                 points.append(fitz.Point(command[5], command[6]))
                         try:
+                            cloud_annot = page.add_polyline_annot(points)
+                 # Set additional metadata for the annotation
+                            cloud_annot.set_info(
+                                title=annotation.get("title", ""),
+                                subject=annotation.get("subject", ""),
+                                content=annotation.get("content", "")
+                           )
                             page.draw_polyline(
                                 points,
                                 color=(1, 0, 0),
@@ -159,20 +185,32 @@ def save_pdf():
 
                 elif annotation["type"] == "freeDraw":
                     if "path" in annotation:
-                        path = annotation['path']
+                        path = annotation["path"]
                         fitz_path = []
+
                         for command in path:
-                            if command[0] == 'M':
+                            if command[0] == 'M':  # Move to
                                 fitz_path.append(fitz.Point(command[1], command[2]))
-                            elif command[0] == 'Q':
+                            elif command[0] == 'Q':  # Quadratic curve
                                 fitz_path.append(fitz.Point(command[1], command[2]))
                                 fitz_path.append(fitz.Point(command[3], command[4]))
-                        page.draw_polyline(fitz_path, color=(0, 0, 0), width=2)
-                        x1, y1 = annotation.get("x1", 0), annotation.get("y1", 0)
-                        rect = fitz.Rect(x1, y1, x1 + 1, y1 + 1)
-                        freeDraw_annot = page.add_freetext_annot(rect, "")
-                        freeDraw_annot.set_info(title=annotation.get("title", ""), subject=annotation.get("subject", ""), content=annotation.get("content", ""))
-                        freeDraw_annot.update()
+
+                        # Create a polyline annotation for FreeDraw
+                        free_draw_annot = page.add_polyline_annot(fitz_path)
+
+                        # Set metadata for the annotation
+                        free_draw_annot.set_info(
+                           title=annotation.get("title", ""),
+                            subject=annotation.get("subject", ""),
+                            content=annotation.get("content", "")
+                        )
+
+                        # Set appearance properties
+                        free_draw_annot.set_colors(stroke=(0, 0, 0))  # Black color
+                        free_draw_annot.set_border(width=annotation.get("strokeWidth", 2))
+
+                        # Finalize the annotation
+                        free_draw_annot.update()
                     else:
                         print(f"Missing path data for freeDraw annotation: {annotation}")
 
